@@ -1,0 +1,27 @@
+[project]
+name = "ai-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "pydantic>=2.7.0",
+  "python-dotenv>=1.0.1",
+  "SQLAlchemy>=2.0.32",
+  "psycopg[binary]>=3.2.1",
+  "redis[hiredis]>=5.0.7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black>=24.8.0",
+  "ruff>=0.6.9",
+  "isort>=5.13.2",
+  "pytest>=8.3.2",
+]
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.9.0"
+isort = "^7.0.0"
+flake8 = "^7.3.0"
+
