@@ -240,10 +240,10 @@ class InMemoryStoreApi implements StoreApi {
         imagePath: 'assets/wall2.png',
       ),
     ],
-    '인테리어': [
+    '테마': [
       StoreItem(
         id: 'background1',
-        category: '인테리어',
+        category: '테마',
         name: '갈색 배경',
         description: '갈색',
         price: 500,
@@ -252,7 +252,7 @@ class InMemoryStoreApi implements StoreApi {
       ),
       StoreItem(
         id: 'background2',
-        category: '인테리어',
+        category: '테마',
         name: '핑크 줄무늬 배경',
         description: '핑크 , 줄무늬',
         price: 650,
@@ -260,14 +260,14 @@ class InMemoryStoreApi implements StoreApi {
       ),
       StoreItem(
         id: 'floor1',
-        category: '인테리어',
+        category: '테마',
         name: '갈색 바닥',
         description: '갈색',
         price: 500,
         imagePath: 'assets/floor.png',
       ),StoreItem(
         id: 'floor2',
-        category: '인테리어',
+        category: '테마',
         name: '핑크 줄무늬 바닥',
         description: '핑크 , 줄무늬',
         price: 650,
