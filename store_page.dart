@@ -16,7 +16,7 @@ const Map<String, bool> kOverlayOnCharacter = {
   '헤어': true,
   '얼굴': true,
   '가구': false,
-  '인테리어': false,
+  '테마': false,
   '프로필': false,
 };
 
