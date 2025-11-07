@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'closestpage.dart';
+import 'vilage_hub_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,8 +73,10 @@ class _MainScreenState extends State<MainScreen> {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const VillageScreen()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const VillageHubPage()),
+              );
             },
           )
         ],
@@ -251,7 +254,7 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
     selectedCloset = widget.closet;
     selectedFace = widget.face;
   }
-  
+
   int unlockedSlots = 1; // 기본 슬롯 1개만 열려 있음
   int selectedSlot = 0;
 
@@ -564,13 +567,14 @@ class ChatScreen extends StatelessWidget {
 // =======================
 // 🏡 마을 화면
 // =======================
-class VillageScreen extends StatelessWidget {
-  const VillageScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('마을')),
-      body: const Center(child: Text('마을 화면으로 이동했습니다.')),
-    );
-  }
-}
+// class VillageScreen extends StatelessWidget {
+//   const VillageScreen({super.key});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('마을')),
+//       body: const Center(child: Text('마을 화면으로 이동했습니다.')),
+//     );
+//   }
+// }
+
