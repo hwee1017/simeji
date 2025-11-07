@@ -12,7 +12,7 @@ const Map<String, bool> kCategoryUsesModel = {
   // 착의실에서는 기본적으로 아래 카테고리는 안 보이지만
   // 혹시 보이게 바꾸고 싶을 때 false로 두면 캐릭터 없이 노출
   '가구': false,
-  '인테리어': false,
+  '테마': false,
   '프로필': false,
 };
 
