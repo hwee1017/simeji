@@ -1,5 +1,6 @@
+// LogIn.dart
 import 'package:flutter/material.dart';
-import 'vilage_hub_page.dart'; // 🔥 추가 — 같은 폴더에 있는 페이지 import
+import 'vilage_hub_page.dart'; // 마을 페이지 import
 
 void main() {
   runApp(const MyApp());
@@ -14,12 +15,14 @@ class MyApp extends StatelessWidget {
       title: '로그인/회원가입 예제',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MainPage(),
+      home: const MainPage(), // 앱 시작 화면
     );
   }
 }
 
-/// ✅ 메인 화면
+// ========================
+// 메인 화면
+// ========================
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
@@ -57,7 +60,9 @@ class MainPage extends StatelessWidget {
   }
 }
 
-/// ✅ 회원가입 페이지
+// ========================
+// 회원가입 페이지
+// ========================
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -84,7 +89,8 @@ class _SignUpPageState extends State<SignUpPage> {
       if (id.isEmpty || pw.isEmpty) {
         _errorMessage = '아이디 또는 비밀번호를 입력해주세요.';
       } else if (!validatePassword(pw)) {
-        _errorMessage = '비밀번호는 8~20자이며 영문, 숫자, 특수문자를 포함해야 합니다.';
+        _errorMessage =
+        '비밀번호는 8~20자이며 영문, 숫자, 특수문자를 포함해야 합니다.';
       } else {
         _errorMessage = null;
       }
@@ -148,7 +154,9 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-/// ✅ 로그인 페이지
+// ========================
+// 로그인 페이지
+// ========================
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -231,7 +239,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-/// ✅ 어서오세요 화면 → village_hub_page.dart로 이동
+// ========================
+// 어서오세요 화면 → VillageHubPage로 이동
+// ========================
 class WelcomePage extends StatelessWidget {
   final String userId;
   const WelcomePage({super.key, required this.userId});
@@ -239,7 +249,7 @@ class WelcomePage extends StatelessWidget {
   void _goNextPage(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const VillageHubPage()), // 🔥 변경됨
+      MaterialPageRoute(builder: (_) => const VillageHubPage()),
     );
   }
 

@@ -2,21 +2,37 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'closestpage.dart';
 import 'vilage_hub_page.dart';
+import 'LogIn.dart';
 import 'Chat.dart'; // 💡 lib/Chat.dart 파일에서 ChatScreen을 불러오기 위해 추가
 
 void main() {
   runApp(const MyApp());
 }
 
+class CharacterState {
+  String hair;
+  String closet;
+  String face;
+  CharacterState({
+    this.hair = 'assets/hair1.png',
+    this.closet = 'assets/closet1.png',
+    this.face = 'assets/face1.png',
+  });
+}
+
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? hair;
+  final String? closet;
+  final String? face;
+  const MyApp({super.key, this.hair, this.closet, this.face});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'My Character Room',
       theme: ThemeData(useMaterial3: true),
-      home: const MainScreen(),
+      home: MainPage(),
     );
   }
 }
@@ -25,7 +41,10 @@ class MyApp extends StatelessWidget {
 // 🏠 메인화면
 // =======================
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final String? hair;
+  final String? closet;
+  final String? face;
+  const MainScreen({super.key, this.hair, this.closet, this.face});
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -39,6 +58,18 @@ class _MainScreenState extends State<MainScreen> {
   String? closet;
   String? face;
 
+  
+  final Map<String, String> emotionFaces = {
+    'angry': 'assets/angry.png',
+    'annoying': 'assets/annoying.png',
+    'happy': 'assets/happy.png',
+    'keke': 'assets/keke.png',
+    'love': 'assets/love.png',
+    'sad': 'assets/sad.png',
+    'surprise': 'assets/surprise.png',
+    'yum': 'assets/yum.png',
+  };
+
   void toggleListening(bool start) {
     setState(() {
       isListening = start;
@@ -50,6 +81,13 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    hair = widget.hair ?? 'assets/hair1.png';
+    closet = widget.closet ?? 'assets/closet1.png';
+    face = widget.face ?? 'assets/face1.png';
+  }
   void changeEmotionTemporarily(String newEmotion) {
     setState(() {
       characterEmotion = newEmotion;
@@ -72,14 +110,19 @@ class _MainScreenState extends State<MainScreen> {
         title: const Text('내 방'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.exit_to_app),
+            icon: Image.asset(
+              'assets/town.png', // 교체할 이미지 경로
+              width: 28,
+              height: 28,
+            ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const VillageHubPage()),
-              );
+              Navigator.pop(context, {
+                'hair': hair,
+                'closet': closet,
+                'face': face,
+              });
             },
-          )
+          ),
         ],
       ),
       body: Stack(
@@ -88,7 +131,7 @@ class _MainScreenState extends State<MainScreen> {
           // ✅ 배경 이미지
           Positioned.fill(
             child: Image.asset(
-              'assets/room_background.jpg',
+              'assets/background1.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -119,35 +162,61 @@ class _MainScreenState extends State<MainScreen> {
 
           ),
           // ✅ 감정표현 팝업
+          // 감정표현 팝업
           if (showEmotionPopup)
             Positioned(
-              bottom: 100,
+              bottom: 50,
               child: Card(
                 color: Colors.white,
                 elevation: 4,
                 child: SizedBox(
-                  width: 250,
                   height: 120,
-                  child: ListView(
+                  width: 320, // 카드 폭
+                  child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    children: [
-                      for (var emoji in ['😀', '😡', '😭', '😍', '😎', '😴'])
-                        GestureDetector(
-                          onTap: () {
-                            changeEmotionTemporarily(emoji);
-                            setState(() => showEmotionPopup = false);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Text(emoji,
-                                style: const TextStyle(fontSize: 40)),
+                    itemCount: emotionFaces.keys.length,
+                    itemBuilder: (context, index) {
+                      String emotion = emotionFaces.keys.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            face = emotionFaces[emotion]; // 얼굴 변경
+                            showEmotionPopup = false;
+                          });
+                          Timer(const Duration(seconds: 3), () {
+                            if (mounted) {
+                              setState(() {
+                                face = widget.face ?? 'assets/face1.png';
+                              });
+                            }
+                          });
+                        },
+                        child: Container(
+                          width: 80, // 각 아이템 폭
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            children: [
+                              Image.asset(
+                                emotionFaces[emotion]!,
+                                width: 50,
+                                height: 50,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                emotion,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
                           ),
                         ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
             ),
+
         ],
       ),
       // ✅ 하단 메뉴
@@ -157,18 +226,24 @@ class _MainScreenState extends State<MainScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
-              icon: const Icon(Icons.checkroom),
+              icon: Image.asset(
+                'assets/closet.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () async {
-                // ClosetPage로 이동하고 선택된 옷 정보를 기다림
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ClosetMainScreen(hair: hair, closet: closet, face: face),
+                    builder: (context) => ClosetMainScreen(
+                      hair: hair,
+                      closet: closet,
+                      face: face,
+                    ),
                   ),
                 );
 
-                // 돌아올 때 옷 정보 반영
+                // 돌아오면서 옷 정보 갱신
                 if (result != null && mounted) {
                   setState(() {
                     hair = result['hair'];
@@ -178,9 +253,13 @@ class _MainScreenState extends State<MainScreen> {
                 }
               },
             ),
-
+            
             IconButton(
-              icon: const Icon(Icons.emoji_emotions),
+              icon: Image.asset(
+                'assets/emotion.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 setState(() => showEmotionPopup = !showEmotionPopup);
               },
@@ -192,14 +271,18 @@ class _MainScreenState extends State<MainScreen> {
               onLongPressEnd: (_) {
                 toggleListening(false);
               },
-              child: Icon(
-                Icons.mic,
-                size: isListening ? 48 : 32,
-                color: isListening ? Colors.red : Colors.black,
+              child: Image.asset(
+                isListening ? 'assets/mike2.png' : 'assets/mike.png', // 마이크 이미지 하나만 사용
+                width: isListening ? 48 : 32,
+                height: isListening ? 48 : 32,
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.chair),
+              icon: Image.asset(
+                'assets/room.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -208,7 +291,11 @@ class _MainScreenState extends State<MainScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.chat),
+              icon: Image.asset(
+                'assets/log.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 // 이 ChatScreen은 Chat.dart에서 가져온 실제 채팅 화면입니다.
                 // (단, 아래에 있는 데모 ChatScreen과 이름 충돌이 발생할 수 있으니 주의)
@@ -250,13 +337,13 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
     '얼굴': ['assets/face1.png', 'assets/face2.png'],
   };
 
-  @override
-  void initState() {
-    super.initState();
-    selectedHair = widget.hair;
-    selectedCloset = widget.closet;
-    selectedFace = widget.face;
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   selectedHair = widgets.hair;
+  //   selectedCloset = widgets.closet;
+  //   selectedFace = widgets.face;
+  // }
 
   int unlockedSlots = 1; // 기본 슬롯 1개만 열려 있음
   int selectedSlot = 0;
@@ -300,12 +387,9 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
                       alignment: Alignment.center,
                       children: [
                         Image.asset('assets/mainchar.png', height: 100),
-                        if (selectedHair != null)
-                          Image.asset(selectedHair!, height: 100),
-                        if (selectedCloset != null)
-                          Image.asset(selectedCloset!, height: 100),
-                        if (selectedFace != null)
-                          Image.asset(selectedFace!, height: 100),
+                          Image.asset(selectedHair ?? 'assets/hair1.png', height: 100),
+                          Image.asset(selectedCloset ?? 'assets/closet1.png', height: 100),
+                          Image.asset(selectedFace ?? 'assets/face1.png', height: 100),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -314,48 +398,62 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          onPressed: () async {
-                            // 옷 갈아입기 탭으로 이동
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ClosetPage(
-                                  hair: selectedHair,
-                                  closet: selectedCloset,
-                                  face: selectedFace,
-                                ),
+                                onPressed: () async {
+                                  // 갈아입기 화면으로 이동
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ClosetPage(
+                                        hair:selectedHair ?? 'assets/hair1.png',
+                                        closet:selectedCloset ?? 'assets/closet1.png',
+                                        face:selectedFace ?? 'assets/face1.png',
+                                      ),
+                                    ),
+                                  );
+
+                                  // 돌아오면서 선택된 옷 정보 적용
+                                  if (result != null && mounted) {
+                                    setState(() {
+                                      selectedHair = result['hair'];
+                                      selectedCloset = result['closet'];
+                                      selectedFace = result['face'];
+                                    });
+                                  }
+                                },
+                                child: const Text('갈아입기'),
                               ),
-                            );
-                            if (result != null && mounted) {
-                              setState(() {
-                                selectedHair = result['hair'];
-                                selectedCloset = result['closet'];
-                                selectedFace = result['face'];
-                              });
-                            }
-                          },
-                          child: const Text('갈아입기'),
-                        ),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context, {
-                              'hair': selectedHair,
-                              'closet': selectedCloset,
-                              'face': selectedFace,
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('슬롯 ${index + 1} 선택됨'),
+                                onPressed: () {
+                                  // 선택된 슬롯 정보 VillageHubPage/MainScreen으로 전달
+                                  Navigator.pop(context, {
+                                    'hair': selectedHair ?? 'assets/hair1.png',
+                                    'closet':
+                                        selectedCloset ?? 'assets/closet1.png',
+                                    'face': selectedFace ?? 'assets/face1.png',
+                                  });
+
+                                  // 선택 완료 스낵바
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('슬롯 ${index + 1} 선택됨'),
+                                    ),
+                                  );
+                                },
+                                child: const Text('선택'),
                               ),
-                            );
-                          },
-                          child: const Text('선택'),
-                        ),
+
                       ],
                     ),
                   ],
                 )
-                    : const Icon(Icons.lock, size: 60, color: Colors.grey),
+                    : SizedBox(
+                  width: 1,
+                  height: 1,
+                  child: Image.asset(
+                    'assets/lock.png',
+                    fit: BoxFit.contain, // 이미지 비율 유지
+                  ),
+                )
               ),
             );
           },
@@ -369,174 +467,18 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
           }
         },
         label: const Text('슬롯 해제'),
-        icon: const Icon(Icons.lock_open),
+        icon: Image.asset(
+          'assets/lock.png', // 슬롯 해제용 이미지 경로
+          width: 24,
+          height: 24,
+          color: Colors.white, // 필요 시 색상 조절
+        ),
       ),
     );
   }
 }
 
 
-// // =======================
-// // 👕 옷장 화면 (그림 반영 버전)
-// // =======================
-// class ClosetScreen extends StatefulWidget {
-//   const ClosetScreen({super.key});
-
-//   @override
-//   State<ClosetScreen> createState() => _ClosetScreenState();
-// }
-
-// class _ClosetScreenState extends State<ClosetScreen> {
-//   final List<String> categories = [
-//     '헤어',
-//     '화장',
-//     '상의',
-//     '하의',
-//     '신발',
-//     '액세서리',
-//     '프로필사진',
-//     '성격',
-//   ];
-//   String selectedCategory = '헤어';
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('옷장'),
-//         leading: IconButton(
-//           icon: const Icon(Icons.arrow_back),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//       ),
-//       body: Row(
-//         children: [
-//           // ✅ 왼쪽 캐릭터 영역
-//           Expanded(
-//             flex: 2,
-//             child: Center(
-//               child: Image.asset('assets/mainchar.png', height: 250),
-//             ),
-//           ),
-
-//           // ✅ 오른쪽 탭 + 아이템 영역
-//           Expanded(
-//             flex: 3,
-//             child: Row(
-//               children: [
-//                 // 세로 탭 버튼 (Column)
-//                 Container(
-//                   width: 80,
-//                   color: Colors.grey.shade200,
-//                   child: ListView.builder(
-//                     itemCount: categories.length,
-//                     itemBuilder: (context, index) {
-//                       String name = categories[index];
-//                       bool selected = name == selectedCategory;
-//                       return GestureDetector(
-//                         onTap: () {
-//                           setState(() => selectedCategory = name);
-//                         },
-//                         child: Container(
-//                           margin: const EdgeInsets.symmetric(
-//                             vertical: 4,
-//                             horizontal: 6,
-//                           ),
-//                           padding: const EdgeInsets.symmetric(vertical: 10),
-//                           decoration: BoxDecoration(
-//                             color: selected
-//                                 ? Colors.blueAccent
-//                                 : Colors.grey.shade300,
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                           child: Center(
-//                             child: Text(
-//                               name,
-//                               style: TextStyle(
-//                                 color: selected ? Colors.white : Colors.black,
-//                                 fontWeight: FontWeight.bold,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       );
-//                     },
-//                   ),
-//                 ),
-
-//                 // ✅ 탭 옆 아이템 미리보기 영역
-//                 Expanded(
-//                   child: Container(
-//                     padding: const EdgeInsets.all(10),
-//                     child: GridView.builder(
-//                       itemCount: 8, // 예시 아이템 수
-//                       gridDelegate:
-//                           const SliverGridDelegateWithFixedCrossAxisCount(
-//                             crossAxisCount: 2, // 한 줄에 2개씩
-//                             mainAxisSpacing: 10,
-//                             crossAxisSpacing: 10,
-//                             childAspectRatio: 1,
-//                           ),
-//                       itemBuilder: (context, index) {
-//                         return GestureDetector(
-//                           onTap: () {
-//                             // TODO: 탭 클릭 시 캐릭터 의상 적용 기능
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               SnackBar(
-//                                 content: Text(
-//                                   '$selectedCategory 아이템 ${index + 1} 선택',
-//                                 ),
-//                                 duration: const Duration(seconds: 1),
-//                               ),
-//                             );
-//                           },
-//                           child: Container(
-//                             decoration: BoxDecoration(
-//                               color: Colors.white,
-//                               border: Border.all(
-//                                 color: Colors.grey.shade400,
-//                                 width: 1.5,
-//                               ),
-//                               borderRadius: BorderRadius.circular(10),
-//                               boxShadow: [
-//                                 BoxShadow(
-//                                   color: Colors.black.withOpacity(0.1),
-//                                   blurRadius: 3,
-//                                   offset: const Offset(2, 2),
-//                                 ),
-//                               ],
-//                             ),
-//                             child: const Icon(
-//                               Icons.checkroom,
-//                               size: 40,
-//                               color: Colors.grey,
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-
-//       // ✅ 하단 저장 버튼
-//       floatingActionButton: FloatingActionButton.extended(
-//         onPressed: () {
-//           ScaffoldMessenger.of(
-//             context,
-//           ).showSnackBar(const SnackBar(content: Text('현재 상태가 저장되었습니다!')));
-//           Navigator.pop(context);
-//         },
-//         icon: const Icon(Icons.save),
-//         label: const Text('저장'),
-//       ),
-//     );
-//   }
-// }
 
 
 // =======================
@@ -553,18 +495,3 @@ class RoomEditScreen extends StatelessWidget {
   }
 }
 
-
-
-// =======================
-// 🏡 마을 화면
-// =======================
-// class VillageScreen extends StatelessWidget {
-//   const VillageScreen({super.key});
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('마을')),
-//       body: const Center(child: Text('마을 화면으로 이동했습니다.')),
-//     );
-//   }
-// }

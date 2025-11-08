@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 class ClosetPage extends StatefulWidget {
   final String? hair;
   final String? closet;
@@ -15,9 +14,9 @@ class _ClosetPageState extends State<ClosetPage> {
   List<String> categories = ['헤어', '옷', '얼굴'];
   String selectedCategory = '헤어';
 
-  String? selectedHair;
-  String? selectedCloset;
-  String? selectedFace;
+  String? selectedHair='assets/hair1.png';
+  String? selectedCloset='assets/closet1.png';
+  String? selectedFace='assets/face1.png';
 
   final Map<String, List<String>> clothesImages = {
     '헤어': ['assets/hair1.png', 'assets/hair2.png'],
@@ -28,9 +27,9 @@ class _ClosetPageState extends State<ClosetPage> {
   @override
   void initState() {
     super.initState();
-    selectedHair = widget.hair;
-    selectedCloset = widget.closet;
-    selectedFace = widget.face;
+    selectedHair = widget.hair ?? 'assets/hair1.png';
+    selectedCloset = widget.closet?? 'assets/closet1.png';
+    selectedFace = widget.face?? 'assets/face1.png';
   }
 
   @override
@@ -40,16 +39,22 @@ class _ClosetPageState extends State<ClosetPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('옷장'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          // ✅ 옷 상태를 들고 메인화면으로 돌아감
-          onPressed: () {
+        leading: GestureDetector(
+          onTap: () {
             Navigator.pop(context, {
               'hair': selectedHair,
               'closet': selectedCloset,
               'face': selectedFace,
             });
           },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              'assets/arrow.png', // 원하는 이미지
+              width: 24,
+              height: 24,
+            ),
+          ),
         ),
       ),
       body: Row(
