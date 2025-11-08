@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'closestpage.dart';
 import 'vilage_hub_page.dart';
 import 'LogIn.dart';
-import 'Chat.dart'; // 💡 lib/Chat.dart 파일에서 ChatScreen을 불러오기 위해 추가
+import 'Chat.dart';
+import 'RoomFurniturePage.dart';// 💡 lib/Chat.dart 파일에서 ChatScreen을 불러오기 위해 추가
 
 void main() {
   runApp(const MyApp());
@@ -20,11 +21,27 @@ class CharacterState {
   });
 }
 
+class RoomState {
+  String background; // 배경 이미지
+  String floor;      // 바닥 이미지
+  String sofa;  // 선택된 가구 이미지
+  String wall;
+  String desk;
+  RoomState({
+    this.background = 'assets/background1.png',
+    this.floor = 'assets/floor.png',
+    this.sofa = 'assets/sofa1.png',
+    this.wall = 'assets/wall1.png',
+    this.desk = 'assets/desk1.png',
+  });
+}
+
 
 class MyApp extends StatelessWidget {
   final String? hair;
   final String? closet;
   final String? face;
+
   const MyApp({super.key, this.hair, this.closet, this.face});
   @override
   Widget build(BuildContext context) {
@@ -44,7 +61,9 @@ class MainScreen extends StatefulWidget {
   final String? hair;
   final String? closet;
   final String? face;
-  const MainScreen({super.key, this.hair, this.closet, this.face});
+  final RoomState? roomState;
+
+  const MainScreen({super.key, this.hair, this.closet, this.face, this.roomState});
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -57,6 +76,7 @@ class _MainScreenState extends State<MainScreen> {
   String? hair;
   String? closet;
   String? face;
+  late RoomState roomState;
 
   
   final Map<String, String> emotionFaces = {
@@ -84,10 +104,15 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+
     hair = widget.hair ?? 'assets/hair1.png';
     closet = widget.closet ?? 'assets/closet1.png';
     face = widget.face ?? 'assets/face1.png';
+
+    // roomState 초기화
+    roomState = widget.roomState ?? RoomState();
   }
+
   void changeEmotionTemporarily(String newEmotion) {
     setState(() {
       characterEmotion = newEmotion;
@@ -120,6 +145,7 @@ class _MainScreenState extends State<MainScreen> {
                 'hair': hair,
                 'closet': closet,
                 'face': face,
+                'roomState': roomState,
               });
             },
           ),
@@ -131,9 +157,34 @@ class _MainScreenState extends State<MainScreen> {
           // ✅ 배경 이미지
           Positioned.fill(
             child: Image.asset(
-              'assets/background1.png',
+              roomState.background,
               fit: BoxFit.cover,
             ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Image.asset(
+              roomState.floor,
+              width: 600,
+              height: 400,
+              fit: BoxFit.fill, // 또는 BoxFit.cover, BoxFit.fitWidth 등
+            ),
+          ),
+          // 가구
+          Positioned(
+            top: 200,
+            left: -10,
+            child: Image.asset(roomState.desk, height: 200),
+          ),
+          Positioned(
+            top: 100,
+            right: 20,
+            child: Image.asset(roomState.wall, height: 150),
+          ),
+          Positioned(
+            top: 250,
+            right: -30,
+            child: Image.asset(roomState.sofa, height: 200),
           ),
           // ✅ 캐릭터 (중앙)
           Center(
@@ -278,18 +329,35 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             IconButton(
-              icon: Image.asset(
-                'assets/room.png', // 교체할 이미지 경로
-                width: 28,
-                height: 28,
-              ),
-              onPressed: () {
-                Navigator.push(
+              icon: Image.asset('assets/room.png', width: 28, height: 28),
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const RoomEditScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => RoomFurniturePage(
+                      selectedFurniture: {
+                        'sofa': roomState.sofa,
+                        'wall': roomState.wall,
+                        'desk': roomState.desk,
+                        'floor': roomState.floor,
+                        'background': roomState.background,
+                      },
+                    ),
+                  ),
                 );
+
+                if (result != null && mounted) {
+                  setState(() {
+                    roomState.sofa = result['sofa'];
+                    roomState.wall = result['wall'];
+                    roomState.desk = result['desk'];
+                    roomState.floor = result['floor'];
+                    roomState.background = result['background'];
+                  });
+                }
               },
             ),
+
             IconButton(
               icon: Image.asset(
                 'assets/log.png', // 교체할 이미지 경로
@@ -311,6 +379,8 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+
 // ✅ 옷장 슬롯 화면
 class ClosetMainScreen extends StatefulWidget {
   final String? hair;
@@ -430,6 +500,7 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
                                     'closet':
                                         selectedCloset ?? 'assets/closet1.png',
                                     'face': selectedFace ?? 'assets/face1.png',
+
                                   });
 
                                   // 선택 완료 스낵바
