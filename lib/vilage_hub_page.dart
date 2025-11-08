@@ -4,10 +4,30 @@ import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
 
+class VillageHubPage extends StatefulWidget {
+  final String? hair;
+  final String? closet;
+  final String? face;
+  const VillageHubPage({super.key, this.hair, this.closet, this.face});
 
-class VillageHubPage extends StatelessWidget {
-  const VillageHubPage({super.key});
+  @override
+  State<VillageHubPage> createState() => _VillageHubPageState();
+}
 
+class _VillageHubPageState extends State<VillageHubPage> {
+  String? hair;
+  String? closet;
+  String? face;
+
+  @override
+  void initState() {
+    super.initState();
+    hair = widget.hair ?? 'assets/hair1.png';
+    closet = widget.closet ?? 'assets/closet1.png';
+    face = widget.face ?? 'assets/face1.png';
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +43,7 @@ class VillageHubPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const SettingsPage()),
               );
             },
-          )
+          ),
         ],
       ),
       body: Stack(
@@ -31,24 +51,34 @@ class VillageHubPage extends StatelessWidget {
           // 배경(간단 Y자 길 표현 – 생략 가능)
           Positioned.fill(child: CustomPaint(painter: _RoadPainter())),
 
-          // #myhome 타일 (오른쪽 위)
+          // #myhome 타일
           Positioned(
             right: 20,
             top: 40,
             child: _VillageTile(
               icon: Icons.home_rounded,
               label: '#myhome',
-              onTap: () {
-                // main.dart로 이동
-                Navigator.pushAndRemoveUntil(
+              onTap: () async {
+                // 현재 옷 정보 전달
+                final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MainScreen()), // ✅ main.dart의 MyApp으로 이동
-                      (route) => false, // 기존 스택 전부 제거
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        MainScreen(hair: hair, closet: closet, face: face),
+                  ),
                 );
+
+                // MainScreen에서 변경된 옷 정보 받아오기
+                if (result != null) {
+                  setState(() {
+                    hair = result['hair'];
+                    closet = result['closet'];
+                    face = result['face'];
+                  });
+                }
               },
             ),
           ),
-
           // #독서실 타일 (왼쪽 중단)
           Positioned(
             left: 20,
@@ -58,9 +88,9 @@ class VillageHubPage extends StatelessWidget {
               label: '#독서실',
               onTap: () {
                 // TODO: 독서실 화면으로 이동(아직 없으면 스낵바)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('독서실은 준비중입니다.')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('독서실은 준비중입니다.')));
               },
             ),
           ),
@@ -72,14 +102,25 @@ class VillageHubPage extends StatelessWidget {
             child: _VillageTile(
               icon: Icons.storefront_rounded,
               label: '#상점',
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const StorePage()),
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        StorePage(hair: hair, closet: closet, face: face),
+                  ),
                 );
+
+                // StorePage에서 업데이트된 값 반영
+                if (result != null) {
+                  hair = result['hair'];
+                  closet = result['closet'];
+                  face = result['face'];
+                }
               },
             ),
           ),
+
 
           // 오른쪽 하단 프로필 카드(간단 UI)
           Positioned(
@@ -96,6 +137,7 @@ class VillageHubPage extends StatelessWidget {
     );
   }
 }
+
 
 class _VillageTile extends StatelessWidget {
   final IconData icon;
