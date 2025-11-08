@@ -171,7 +171,13 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             tooltip: '대화 초기화',
-            icon: const Icon(Icons.delete_outline),
+            icon: Image.asset(
+              'assets/rotate.png', // 이미지 경로
+              width: 30,
+              height: 30,
+              color: Colors.blueAccent, // 아이콘처럼 색을 바꾸고 싶으면
+              colorBlendMode: BlendMode.srcIn,
+            ),
             onPressed: () {
               setState(() {
                 _messages.clear();
@@ -206,16 +212,29 @@ class _ChatScreenState extends State<ChatScreen> {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.chat_bubble_outline, size: 72, color: Colors.blueAccent),
-          SizedBox(height: 12),
-          Text('새 대화를 시작해보세요', style: TextStyle(fontSize: 18)),
-          SizedBox(height: 6),
-          Text('메시지를 입력하고 전송 버튼을 눌러보세요', style: TextStyle(color: Colors.grey)),
+        children: [
+          Image.asset(
+            'assets/log.png', // 이미지 경로
+            width: 72,
+            height: 72,
+            color: Colors.blueAccent, // 아이콘처럼 색을 바꾸고 싶으면
+            colorBlendMode: BlendMode.srcIn,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '새 대화를 시작해보세요',
+            style: TextStyle(fontSize: 18),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            '메시지를 입력하고 전송 버튼을 눌러보세요',
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );
   }
+
 
   Widget _buildInputArea(ThemeData theme) {
     return Container(
@@ -244,7 +263,21 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 22,
               backgroundColor: _isSending ? Colors.grey : Colors.blueAccent,
               child: IconButton(
-                icon: _isSending ? const Icon(Icons.hourglass_top) : const Icon(Icons.send),
+                icon: _isSending
+                    ? Image.asset(
+                  'assets/sandclock.png',
+                  width: 24,
+                  height: 24,
+                  color: Colors.white, // 색을 바꾸고 싶으면
+                  colorBlendMode: BlendMode.srcIn,
+                )
+                    : Image.asset(
+                  'assets/airplane.png',
+                  width: 24,
+                  height: 24,
+                  color: Colors.white,
+                  colorBlendMode: BlendMode.srcIn,
+                ),
                 color: Colors.white,
                 onPressed: _isSending ? null : _sendMessageFromInput,
               ),

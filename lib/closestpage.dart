@@ -40,16 +40,22 @@ class _ClosetPageState extends State<ClosetPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('옷장'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          // ✅ 옷 상태를 들고 메인화면으로 돌아감
-          onPressed: () {
+        leading: GestureDetector(
+          onTap: () {
             Navigator.pop(context, {
               'hair': selectedHair,
               'closet': selectedCloset,
               'face': selectedFace,
             });
           },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              'assets/arrow.png', // 원하는 이미지
+              width: 24,
+              height: 24,
+            ),
+          ),
         ),
       ),
       body: Row(
