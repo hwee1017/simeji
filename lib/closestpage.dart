@@ -15,9 +15,9 @@ class _ClosetPageState extends State<ClosetPage> {
   List<String> categories = ['헤어', '옷', '얼굴'];
   String selectedCategory = '헤어';
 
-  String? selectedHair;
-  String? selectedCloset;
-  String? selectedFace;
+  String? selectedHair='assets/hair1.png';
+  String? selectedCloset='assets/closet1.png';
+  String? selectedFace='assets/face1.png';
 
   final Map<String, List<String>> clothesImages = {
     '헤어': ['assets/hair1.png', 'assets/hair2.png'],
@@ -28,9 +28,9 @@ class _ClosetPageState extends State<ClosetPage> {
   @override
   void initState() {
     super.initState();
-    selectedHair = widget.hair;
-    selectedCloset = widget.closet;
-    selectedFace = widget.face;
+    selectedHair = widget.hair ?? 'assets/hair1.png';
+    selectedCloset = widget.closet?? 'assets/closet1.png';
+    selectedFace = widget.face?? 'assets/face1.png';
   }
 
   @override
