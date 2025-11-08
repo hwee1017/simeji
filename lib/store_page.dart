@@ -24,7 +24,10 @@ const Map<String, bool> kOverlayOnCharacter = {
 const List<String> kTryOnEnabledCategories = ['의상', '헤어', '얼굴'];
 
 class StorePage extends StatefulWidget {
-  const StorePage({super.key});
+  final String? hair;
+  final String? closet;
+  final String? face;
+  const StorePage({super.key, this.hair, this.closet, this.face});
   @override
   State<StorePage> createState() => _StorePageState();
 }
@@ -32,10 +35,14 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> {
   final StoreApi api = InMemoryStoreApi();
 
+  String? hair;
+  String? closet;
+  String? face;
   bool loading = true;
   List<String> categories = [];
   String selectedCategory = '의상';
   int credits = 0;
+
 
   final Map<String, List<StoreItem>> _itemsByCat = {};
   StoreItem? trialItem; // (기존 하단 패널과 호환용)
@@ -43,6 +50,9 @@ class _StorePageState extends State<StorePage> {
   @override
   void initState() {
     super.initState();
+    hair = widget.hair ?? 'assets/hair1.png';
+    closet = widget.closet ?? 'assets/closet1.png';
+    face = widget.face ?? 'assets/face1.png';
     _bootstrap();
   }
 
