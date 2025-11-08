@@ -41,23 +41,43 @@ class _StudyRoomPageState extends State<StudyRoomPage> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: const ImageIcon(
+            AssetImage('assets/study-room.png'),
+            size: 24,
+            color: Colors.blue,
+            ),
             label: '독서실',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.schedule),
+            icon: const ImageIcon(
+            AssetImage('assets/timetable.png'),
+            size: 24,
+            color: Colors.blue,
+            ),
             label: '시간표',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.timer),
+            icon: const ImageIcon(
+            AssetImage('assets/stopwatch.png'),
+            size: 24,
+            color: Colors.blue,
+            ),
             label: '스톱워치',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
+            icon: const ImageIcon(
+            AssetImage('assets/calendar.png'),
+            size: 24,
+            color: Colors.blue,
+            ),
             label: '캘린더',
           ),          
           BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle_outline),
+            icon: const ImageIcon(
+            AssetImage('assets/list.png'),
+            size: 24,
+            color: Colors.blue,
+            ),
             label: 'To-Do',
           ),
         ],

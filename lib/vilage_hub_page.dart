@@ -43,6 +43,16 @@ class _VillageHubPageState extends State<VillageHubPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Image.asset(
+            'assets/stopwatch.png',
+            width: 28,
+            height: 28,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text('마을'),
         actions: [
           IconButton(
