@@ -1,39 +1,80 @@
-// main.dart
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-// ===== Model & In-Memory Store =====
-class Schedule {
-  final String id;
+// ===== Hive 모델 정의 =====
+part 'weekplaner_page.g.dart'; // ✅ build_runner로 생성될 어댑터 파일
+
+@HiveType(typeId: 0)
+class Schedule extends HiveObject {
+  @HiveField(0)
+  String id;
+  @HiveField(1)
   String name;
+  @HiveField(2)
   String description;
+  @HiveField(3)
   int day; // 0=월 ... 6=일
-  int startHour, startMinute;
-  int endHour, endMinute;
+  @HiveField(4)
+  int startHour;
+  @HiveField(5)
+  int startMinute;
+  @HiveField(6)
+  int endHour;
+  @HiveField(7)
+  int endMinute;
+  @HiveField(8)
   int colorValue;
-  Schedule(this.id, this.name, this.description, this.day, this.startHour,
-      this.startMinute, this.endHour, this.endMinute, this.colorValue);
+
+  Schedule(
+      this.id,
+      this.name,
+      this.description,
+      this.day,
+      this.startHour,
+      this.startMinute,
+      this.endHour,
+      this.endMinute,
+      this.colorValue,
+      );
 }
 
+// ===== Hive 기반 스토어 =====
 class ScheduleStore {
   static final ScheduleStore I = ScheduleStore._();
   ScheduleStore._();
+
   final ValueNotifier<List<Schedule>> items = ValueNotifier<List<Schedule>>([]);
-  void add(Schedule s) =>
-      items.value = List<Schedule>.from(items.value)..add(s);
-  void deleteById(String id) =>
-      items.value = List<Schedule>.from(items.value)
-        ..removeWhere((e) => e.id == id);
+  late Box<Schedule> _box;
+
+  Future<void> init() async {
+    await Hive.initFlutter();
+    Hive.registerAdapter(ScheduleAdapter());
+    _box = await Hive.openBox<Schedule>('schedules');
+    items.value = _box.values.toList();
+  }
+
+  void add(Schedule s) async {
+    await _box.put(s.id, s);
+    items.value = _box.values.toList();
+  }
+
+  void deleteById(String id) async {
+    await _box.delete(id);
+    items.value = _box.values.toList();
+  }
+
   List<Schedule> byDay(int d) => (List<Schedule>.from(items.value)
     ..retainWhere((e) => e.day == d)
     ..sort((a, b) => (a.startHour * 60 + a.startMinute)
         .compareTo(b.startHour * 60 + b.startMinute)));
 }
 
-// ===== App =====
+// ===== 앱 시작 =====
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ScheduleStore.I.init(); // ✅ Hive 초기화 및 데이터 로드
   runApp(const MyApp());
 }
 
@@ -93,7 +134,7 @@ class RootTabs extends StatelessWidget {
   }
 }
 
-// ===== Day Tabs (요일별) =====
+// ===== Day Tabs =====
 class DayTabs extends StatefulWidget {
   const DayTabs({super.key});
   static final nestedTabKey = GlobalKey<_DayTabsState>();
