@@ -57,7 +57,7 @@ class _VillageHubPageState extends State<VillageHubPage> {
         actions: [
           IconButton(
             icon: Image.asset(
-              'assets/setting.png', // 👉 넣고 싶은 이미지 경로
+              'assets/setting.png',
               width: 28,
               height: 28,
             ),
