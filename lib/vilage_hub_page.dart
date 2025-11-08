@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
+import 'pages/study_room_page.dart';
 
 class VillageHubPage extends StatefulWidget {
   final String? hair;
@@ -113,10 +114,10 @@ class _VillageHubPageState extends State<VillageHubPage> {
             top: 90,
             child: GestureDetector(
               onTap: () {
-                // 독서실 화면 이동 (준비중이면 스낵바)
-                ScaffoldMessenger.of(
+                Navigator.push(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('독서실은 준비중입니다.')));
+                  MaterialPageRoute(builder: (context) => const StudyRoomPage()),
+                );
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
