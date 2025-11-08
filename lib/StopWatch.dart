@@ -252,7 +252,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
+          icon: const Icon(Icons.arrow_back),
           onPressed: _handleExit,
         ),
         title: Text(isStudy ? '공부 중 ⏱' : '휴식 중 ☕'),

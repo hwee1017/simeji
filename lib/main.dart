@@ -110,7 +110,11 @@ class _MainScreenState extends State<MainScreen> {
         title: const Text('내 방'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.exit_to_app),
+            icon: Image.asset(
+              'assets/town.png', // 교체할 이미지 경로
+              width: 28,
+              height: 28,
+            ),
             onPressed: () {
               Navigator.pop(context, {
                 'hair': hair,
@@ -127,7 +131,7 @@ class _MainScreenState extends State<MainScreen> {
           // ✅ 배경 이미지
           Positioned.fill(
             child: Image.asset(
-              'assets/room_background.jpg',
+              'assets/background1.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -222,7 +226,11 @@ class _MainScreenState extends State<MainScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
-              icon: const Icon(Icons.checkroom),
+              icon: Image.asset(
+                'assets/closet.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
@@ -247,7 +255,11 @@ class _MainScreenState extends State<MainScreen> {
             ),
             
             IconButton(
-              icon: const Icon(Icons.emoji_emotions),
+              icon: Image.asset(
+                'assets/emotion.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 setState(() => showEmotionPopup = !showEmotionPopup);
               },
@@ -259,14 +271,18 @@ class _MainScreenState extends State<MainScreen> {
               onLongPressEnd: (_) {
                 toggleListening(false);
               },
-              child: Icon(
-                Icons.mic,
-                size: isListening ? 48 : 32,
-                color: isListening ? Colors.red : Colors.black,
+              child: Image.asset(
+                isListening ? 'assets/mike2.png' : 'assets/mike.png', // 마이크 이미지 하나만 사용
+                width: isListening ? 48 : 32,
+                height: isListening ? 48 : 32,
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.chair),
+              icon: Image.asset(
+                'assets/room.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -275,7 +291,11 @@ class _MainScreenState extends State<MainScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.chat),
+              icon: Image.asset(
+                'assets/log.png', // 교체할 이미지 경로
+                width: 28,
+                height: 28,
+              ),
               onPressed: () {
                 // 이 ChatScreen은 Chat.dart에서 가져온 실제 채팅 화면입니다.
                 // (단, 아래에 있는 데모 ChatScreen과 이름 충돌이 발생할 수 있으니 주의)
@@ -426,7 +446,14 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
                     ),
                   ],
                 )
-                    : const Icon(Icons.lock, size: 60, color: Colors.grey),
+                    : SizedBox(
+                  width: 1,
+                  height: 1,
+                  child: Image.asset(
+                    'assets/lock.png',
+                    fit: BoxFit.contain, // 이미지 비율 유지
+                  ),
+                )
               ),
             );
           },
@@ -440,7 +467,12 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
           }
         },
         label: const Text('슬롯 해제'),
-        icon: const Icon(Icons.lock_open),
+        icon: Image.asset(
+          'assets/lock.png', // 슬롯 해제용 이미지 경로
+          width: 24,
+          height: 24,
+          color: Colors.white, // 필요 시 색상 조절
+        ),
       ),
     );
   }

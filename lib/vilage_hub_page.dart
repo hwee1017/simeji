@@ -28,22 +28,25 @@ class _VillageHubPageState extends State<VillageHubPage> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('마을'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Image.asset(
+              'assets/setting.png', // 👉 넣고 싶은 이미지 경로
+              width: 28,
+              height: 28,
+            ),
             onPressed: () {
-              // TODO: 설정 화면 이동 (필요시)
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsPage()),
               );
             },
           ),
+
         ],
       ),
       body: Stack(
@@ -53,11 +56,9 @@ class _VillageHubPageState extends State<VillageHubPage> {
 
           // #myhome 타일
           Positioned(
-            right: 20,
-            top: 40,
-            child: _VillageTile(
-              icon: Icons.home_rounded,
-              label: '#myhome',
+            right: -30,
+            top: 50,
+            child: GestureDetector(
               onTap: () async {
                 // 현재 옷 정보 전달
                 final result = await Navigator.push(
@@ -77,49 +78,92 @@ class _VillageHubPageState extends State<VillageHubPage> {
                   });
                 }
               },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/home.png', // 이미지 파일 경로
+                    width: 230, // 원하는 크기로 조정
+                    height: 230,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '집',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
           ),
           // #독서실 타일 (왼쪽 중단)
           Positioned(
-            left: 20,
-            top: 160,
-            child: _VillageTile(
-              icon: Icons.local_library_rounded,
-              label: '#독서실',
+            left: -40,
+            top: 90,
+            child: GestureDetector(
               onTap: () {
-                // TODO: 독서실 화면으로 이동(아직 없으면 스낵바)
+                // 독서실 화면 이동 (준비중이면 스낵바)
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('독서실은 준비중입니다.')));
               },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/studycafe.png', // 원하는 이미지
+                    width: 290, // 크기 조정 가능
+                    height: 290,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '독서실',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
           ),
+
 
           // #상점 타일 (왼쪽 하단)
           Positioned(
-            left: 20,
-            bottom: 40,
-            child: _VillageTile(
-              icon: Icons.storefront_rounded,
-              label: '#상점',
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        StorePage(hair: hair, closet: closet, face: face),
-                  ),
-                );
+  left: 10,
+  bottom: 120,
+  child: GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StorePage(hair: hair, closet: closet, face: face),
+        ),
+      );
 
-                // StorePage에서 업데이트된 값 반영
-                if (result != null) {
-                  hair = result['hair'];
-                  closet = result['closet'];
-                  face = result['face'];
-                }
-              },
+      if (result != null) {
+        setState(() {
+          hair = result['hair'];
+          closet = result['closet'];
+          face = result['face'];
+        });
+      }
+    },
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+            'assets/shop.png',
+            width: 230,
+            height: 230,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '상점',
+            style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
+          ),
+
 
 
           // 오른쪽 하단 프로필 카드(간단 UI)
@@ -140,35 +184,33 @@ class _VillageHubPageState extends State<VillageHubPage> {
 
 
 class _VillageTile extends StatelessWidget {
-  final IconData icon;
+   final String imagePath; // 이미지 경로
   final String label;
   final VoidCallback onTap;
-  const _VillageTile({required this.icon, required this.label, required this.onTap, super.key});
+
+  const _VillageTile({
+    required this.imagePath,
+    required this.label,
+    required this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        width: 140,
-        height: 110,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 4))],
-          border: Border.all(color: Colors.black12),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Image.asset(
+            imagePath, // 기존 icon 대신 imagePath 사용
+            width: 64, // 원하는 크기로 조정
+            height: 64,
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 36),
-            const SizedBox(height: 10),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
     );
   }
 }
@@ -194,7 +236,10 @@ class _ProfileCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: const [
-            CircleAvatar(radius: 18, child: Icon(Icons.person)),
+            CircleAvatar(
+              radius: 18,
+              backgroundImage: AssetImage('assets/profile1.png'), // 이미지 경로
+            ),
             SizedBox(width: 8),
             Text('프로필', style: TextStyle(fontWeight: FontWeight.bold)),
           ]),
