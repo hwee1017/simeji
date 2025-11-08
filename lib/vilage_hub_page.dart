@@ -8,7 +8,9 @@ class VillageHubPage extends StatefulWidget {
   final String? hair;
   final String? closet;
   final String? face;
-  const VillageHubPage({super.key, this.hair, this.closet, this.face});
+  final RoomState? roomState; // ✅ 추가
+
+  const VillageHubPage({super.key, this.hair, this.closet, this.face, this.roomState});
 
   @override
   State<VillageHubPage> createState() => _VillageHubPageState();
@@ -19,12 +21,21 @@ class _VillageHubPageState extends State<VillageHubPage> {
   String? closet;
   String? face;
 
+  late RoomState roomState; // 현재 가구/배경/바닥 상태
+
   @override
   void initState() {
     super.initState();
     hair = widget.hair ?? 'assets/hair1.png';
     closet = widget.closet ?? 'assets/closet1.png';
     face = widget.face ?? 'assets/face1.png';
+    roomState = widget.roomState ?? RoomState(
+      background: 'assets/background1.png',
+      floor: 'assets/floor.png',
+      sofa: 'assets/sofa1.png',
+      wall: 'assets/wall1.png',
+      desk: 'assets/desk1.png',
+    );
   }
 
   @override
@@ -55,42 +66,43 @@ class _VillageHubPageState extends State<VillageHubPage> {
           Positioned.fill(child: CustomPaint(painter: _RoadPainter())),
 
           // #myhome 타일
+          // #myhome 타일
           Positioned(
             right: -30,
             top: 50,
             child: GestureDetector(
               onTap: () async {
-                // 현재 옷 정보 전달
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        MainScreen(hair: hair, closet: closet, face: face),
+                    builder: (_) => MainScreen(
+                      hair: hair,
+                      closet: closet,
+                      face: face,
+                      roomState: roomState,
+                    ),
                   ),
                 );
 
-                // MainScreen에서 변경된 옷 정보 받아오기
                 if (result != null) {
                   setState(() {
                     hair = result['hair'];
                     closet = result['closet'];
                     face = result['face'];
+
+                    // ✅ 가구 정보도 반영
+                    if (result['roomState'] != null) {
+                      roomState = result['roomState'];
+                    }
                   });
                 }
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'assets/home.png', // 이미지 파일 경로
-                    width: 230, // 원하는 크기로 조정
-                    height: 230,
-                  ),
+                  Image.asset('assets/home.png', width: 230, height: 230),
                   const SizedBox(height: 8),
-                  const Text(
-                    '집',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  const Text('집', style: TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -143,6 +155,9 @@ class _VillageHubPageState extends State<VillageHubPage> {
           hair = result['hair'];
           closet = result['closet'];
           face = result['face'];
+          if (result['roomState'] != null) {
+            roomState = result['roomState']; // ✅ roomState 적용
+          }
         });
       }
     },
