@@ -45,7 +45,7 @@ class _TryOnPageState extends State<TryOnPage> {
   }
 
   Future<void> _bootstrap() async {
-    // widget.categories 는 이미 (의상/헤어/얼굴)로 필터되어 넘어옴
+    // widgets.categories 는 이미 (의상/헤어/얼굴)로 필터되어 넘어옴
     for (final cat in widget.categories) {
       final items = await widget.api.fetchItemsByCategory(cat);
       _itemsByCat[cat] = items;

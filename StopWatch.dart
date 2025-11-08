@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart' as http;
+import 'package:hive_flutter/hive_flutter.dart'; // ✅ Hive 추가
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  await Hive.openBox('study_log'); // 공부/휴식 기록용 박스
+  await Hive.openBox('study_log'); // ✅ 공부 & 휴식 기록용 박스
   runApp(const StopwatchApp());
 }
 
@@ -50,25 +48,10 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
   bool _hasShownOverMessage = false;
   int _coins = 0;
 
-  DateTime? _sessionStart;
-  DateTime? _sessionEnd;
+  DateTime? _sessionStart; // ✅ 세션(공부 or 휴식) 시작 시각
+  DateTime? _sessionEnd;   // ✅ 세션 종료 시각
 
-  @override
-  void initState() {
-    super.initState();
-    final box = Hive.box('study_log');
-    setState(() {
-      _coins = box.get('coins', defaultValue: 0);
-    });
-  }
-
-  // ✅ 코인 저장
-  Future<void> _saveCoins() async {
-    final box = Hive.box('study_log');
-    await box.put('coins', _coins);
-  }
-
-  // ✅ 세션 저장
+  // ✅ Hive에 공부/휴식 세션 저장
   Future<void> _saveSession(String mode, DateTime start, DateTime end) async {
     final box = Hive.box('study_log');
     final existing = box.get('sessions', defaultValue: <Map>[]) as List;
@@ -77,26 +60,9 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
         'mode': mode,
         'start': start.toIso8601String(),
         'end': end.toIso8601String(),
-        'coins': _coins,
       });
     await box.put('sessions', updated);
-    debugPrint("💾 Hive 저장 완료 ($mode): $start ~ $end (코인: $_coins)");
-
-    // ✅ (선택) 서버 업로드 예시
-    try {
-      await http.post(
-        Uri.parse('https://example.com/api/session/save'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'mode': mode,
-          'start': start.toIso8601String(),
-          'end': end.toIso8601String(),
-          'coins': _coins,
-        }),
-      );
-    } catch (e) {
-      debugPrint("서버 업로드 실패: $e");
-    }
+    debugPrint("💾 Hive 저장 완료 ($mode): $start ~ $end");
   }
 
   // ⏱ 타이머 시작
@@ -105,7 +71,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
 
     setState(() {
       _isRunning = true;
-      _sessionStart = DateTime.now();
+      _sessionStart = DateTime.now(); // ✅ 시작 시각 기록
       debugPrint("⏰ ${_mode == TimerMode.study ? '공부' : '휴식'} 시작: $_sessionStart");
     });
 
@@ -115,6 +81,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
           if (_remaining.inSeconds > 0) {
             _remaining -= const Duration(seconds: 1);
           } else {
+            // 시간 초과
             _isOver = true;
             _overTime = const Duration(seconds: 1);
             if (_mode == TimerMode.study) {
@@ -135,18 +102,12 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
 
   // 🎓 공부 완료 → 코인 +10
   void _handleStudyComplete() {
-    setState(() {
-      _coins += 10;
-    });
-    _saveCoins();
+    _coins += 10;
   }
 
   // ☕ 휴식 초과(1분) → 코인 초기화
   void _handleRestOvertime() {
-    setState(() {
-      _coins = 0;
-    });
-    _saveCoins();
+    _coins = 0;
     _hasShownOverMessage = true;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +121,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
     );
   }
 
-  // ⏹ 정지 버튼
+  // ⏹ 정지 버튼 눌렀을 때 → 종료 시각 저장
   void _stopTimer() async {
     _timer?.cancel();
     setState(() => _isRunning = false);
@@ -272,7 +233,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
     );
   }
 
-  // ✅ 나가기 버튼
+  // ✅ 나가기 버튼 (현재 세션 종료 시 저장)
   Future<void> _handleExit() async {
     if (_isRunning && _sessionStart != null) {
       _sessionEnd = DateTime.now();
@@ -282,23 +243,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
         _sessionEnd!,
       );
     }
-    await _saveCoins();
     if (context.mounted) Navigator.pop(context);
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    if (_isRunning && _sessionStart != null) {
-      _sessionEnd = DateTime.now();
-      _saveSession(
-        _mode == TimerMode.study ? 'study' : 'rest',
-        _sessionStart!,
-        _sessionEnd!,
-      );
-    }
-    _saveCoins();
-    super.dispose();
   }
 
   @override
@@ -315,15 +260,6 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
           IconButton(
             onPressed: _showTimeSettingDialog,
             icon: const Icon(Icons.settings),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const StudyHistoryPage()),
-              );
-            },
-            icon: const Icon(Icons.history),
           ),
         ],
       ),
@@ -364,40 +300,10 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
       ),
     );
   }
-}
-
-class StudyHistoryPage extends StatelessWidget {
-  const StudyHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final box = Hive.box('study_log');
-    final sessions = List<Map>.from(box.get('sessions', defaultValue: []));
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('공부 기록')),
-      body: sessions.isEmpty
-          ? const Center(child: Text('기록이 없습니다 😅'))
-          : ListView.builder(
-        itemCount: sessions.length,
-        itemBuilder: (context, index) {
-          final s = sessions[index];
-          return ListTile(
-            leading: Icon(
-              s['mode'] == 'study'
-                  ? Icons.book
-                  : Icons.coffee,
-              color: s['mode'] == 'study'
-                  ? Colors.blue
-                  : Colors.green,
-            ),
-            title: Text(s['mode'] == 'study' ? '📘 공부' : '☕ 휴식'),
-            subtitle: Text(
-              "${s['start']} ~ ${s['end']}\n💰 코인: ${s['coins'] ?? 0}",
-            ),
-          );
-        },
-      ),
-    );
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

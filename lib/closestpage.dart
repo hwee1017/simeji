@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 class ClosetPage extends StatefulWidget {
   final String? hair;
   final String? closet;
