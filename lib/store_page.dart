@@ -89,15 +89,15 @@ class _StorePageState extends State<StorePage> {
   Future<void> _changeCategory(String cat) async {
     if (selectedCategory == cat) return;
     final list = await api.fetchItemsByCategory(cat);
-    // 보유 상태 반영
+
     final invBox = Hive.box('inventory');
     final purchasedIds = List<String>.from(invBox.get('items', defaultValue: []));
     final updatedList = list.map((item) {
-      if (purchasedIds.contains(item.id)) {
-        return item.copyWith(purchased: true);
-      }
-      return item;
+      return purchasedIds.contains(item.id)
+          ? item.copyWith(purchased: true)
+          : item;
     }).toList();
+
     setState(() {
       selectedCategory = cat;
       _itemsByCat[cat] = updatedList;
@@ -110,10 +110,9 @@ class _StorePageState extends State<StorePage> {
     final purchasedIds = List<String>.from(invBox.get('items', defaultValue: []));
     setState(() {
       _itemsByCat[selectedCategory] = list.map((item) {
-        if (purchasedIds.contains(item.id)) {
-          return item.copyWith(purchased: true);
-        }
-        return item;
+        return purchasedIds.contains(item.id)
+            ? item.copyWith(purchased: true)
+            : item;
       }).toList();
     });
   }

@@ -8,7 +8,6 @@ import 'RoomFurniturePage.dart';// 💡 lib/Chat.dart 파일에서 ChatScreen을
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'LogIn.dart'; // 로그인 첫 화면이 여기라고 했잖아
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
