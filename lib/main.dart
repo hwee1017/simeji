@@ -61,6 +61,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Character Room',
       theme: ThemeData(useMaterial3: true),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: LoginPage(), // 너희 흐름: LogIn.dart → village_hub → store_page
     );
   }
