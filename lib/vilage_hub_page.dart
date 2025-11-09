@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
-import 'pages/study_room_page.dart';
+import 'package:dio/dio.dart';
+import 'study_room/study_room_page.dart';
 
 class VillageHubPage extends StatefulWidget {
   final String? hair;
@@ -24,6 +25,13 @@ class _VillageHubPageState extends State<VillageHubPage> {
 
   late RoomState roomState; // 현재 가구/배경/바닥 상태
 
+  String name = '로딩 중...';
+  String userId = '';
+  String etc = '';
+  bool isLoading = true;
+
+  // final Dio dio = Dio();
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +45,35 @@ class _VillageHubPageState extends State<VillageHubPage> {
       wall: 'assets/wall1.png',
       desk: 'assets/desk1.png',
     );
+
+    // 페이지 진입 시 API 호출
+    fetchProfile();
+  }
+
+  /// 프로필 API 호출
+  // Future<void> fetchProfile() async {
+  //   try {
+  //     final response = await dio.get('https://api.example.com/profile');
+  //     // 실제 API 구조에 맞게 수정 필요
+  //     final data = response.data;
+
+  //     setState(() {
+  //       name = data['name'] ?? '이름 없음';
+  //       userId = data['userId'] ?? 'unknown';
+  //       etc = data['etc'] ?? '정보 없음';
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       name = '불러오기 실패';
+  //       etc = e.toString();
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
+
+  void fetchProfile() {
+    print("✅update profile data!!!");
   }
 
   @override
@@ -77,7 +114,6 @@ class _VillageHubPageState extends State<VillageHubPage> {
           Positioned.fill(child: CustomPaint(painter: _RoadPainter())),
 
           // #myhome 타일
-          // #myhome 타일
           Positioned(
             right: -30,
             top: 50,
@@ -105,7 +141,7 @@ class _VillageHubPageState extends State<VillageHubPage> {
                     if (result['roomState'] != null) {
                       roomState = result['roomState'];
                     }
-                  });
+                    });
                 }
               },
               child: Column(
@@ -196,11 +232,9 @@ class _VillageHubPageState extends State<VillageHubPage> {
           Positioned(
             right: 16,
             bottom: 24,
-            child: _ProfileCard(
-              name: '조사', // TODO: 실제 유저명 연결
-              userId: 'user_001',
-              etc: '크레딧/레벨 등',
-            ),
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : _ProfileCard(name: name, userId: userId, etc: etc),
           ),
         ],
       ),

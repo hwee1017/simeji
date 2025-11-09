@@ -564,9 +564,6 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
   }
 }
 
-
-
-
 // =======================
 // 🪑 방 배치
 // =======================

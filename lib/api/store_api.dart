@@ -52,20 +52,10 @@ class StoreItem {
 typedef Item = StoreItem;
 
 /// =======================
-/// API 인터페이스
-/// =======================
-abstract class StoreApi {
-  Future<int> fetchCredits();
-  Future<List<String>> fetchCategories();
-  Future<List<StoreItem>> fetchItemsByCategory(String category);
-  Future<bool> purchase(String itemId);
-}
-
-/// =======================
 /// 임시(In-Memory) 구현
 ///  - 나중에 Hive/서버로 교체 시 이 클래스만 바꾸면 됨
 /// =======================
-class InMemoryStoreApi implements StoreApi {
+class InMemoryStoreApi {
   int _credits = 50000;
 
   /// [ADD] 이 맵을 수정하면 카테고리/상품을 쉽게 늘릴 수 있음.
