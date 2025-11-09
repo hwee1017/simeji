@@ -1,22 +1,24 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'closestpage.dart';
-import 'vilage_hub_page.dart';
 import 'LogIn.dart';
 import 'Chat.dart';
 import 'RoomFurniturePage.dart';// 💡 lib/Chat.dart 파일에서 ChatScreen을 불러오기 위해 추가
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/hive_service.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ko_KR', null);
 
-  // Hive 초기화
+  // Hive 초기화(학습 쪽)
   await HiveService.init();
-
+  
+  await Hive.openBox('coins');
+  await Hive.openBox('inventory');
   runApp(const MyApp());
 }
 
@@ -59,12 +61,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Character Room',
       theme: ThemeData(useMaterial3: true),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: MainPage(),
+      home: LoginPage(), // 너희 흐름: LogIn.dart → village_hub → store_page
     );
   }
 }
@@ -563,6 +560,9 @@ class _ClosetMainScreenState extends State<ClosetMainScreen> {
     );
   }
 }
+
+
+
 
 // =======================
 // 🪑 방 배치

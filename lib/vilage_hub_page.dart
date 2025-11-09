@@ -1,11 +1,13 @@
+// lib/village_hub_page.dart
+import 'package:completever/study_room/study_room_page.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // Hive import
 import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
-import 'study_room/study_room_page.dart';
 
 class VillageHubPage extends StatefulWidget {
+  final String userId; // userId 추가
   final String? hair;
   final String? closet;
   final String? face;
@@ -13,6 +15,7 @@ class VillageHubPage extends StatefulWidget {
 
   const VillageHubPage({
     super.key,
+    required this.userId,
     this.hair,
     this.closet,
     this.face,
@@ -27,15 +30,8 @@ class _VillageHubPageState extends State<VillageHubPage> {
   String? hair;
   String? closet;
   String? face;
-  late RoomState roomState;
 
-  // 프로필 관련 변수
-  String name = '로딩 중...';
-  String userId = '';
-  String etc = '';
-  bool isLoading = true;
-
-  final Dio dio = Dio();
+  late RoomState roomState; // 현재 가구/배경/바닥 상태
 
   @override
   void initState() {
@@ -51,51 +47,20 @@ class _VillageHubPageState extends State<VillageHubPage> {
           wall: 'assets/wall1.png',
           desk: 'assets/desk1.png',
         );
-
-    // 페이지 진입 시 프로필 API 호출
-    fetchProfile();
-  }
-
-  /// 프로필 API 호출
-  // Future<void> fetchProfile() async {
-  //   try {
-  //     final response = await dio.get('https://api.example.com/profile');
-  //     final data = response.data;
-
-  //     setState(() {
-  //       name = data['name'] ?? '이름 없음';
-  //       userId = data['userId'] ?? 'unknown';
-  //       etc = data['etc'] ?? '정보 없음';
-  //       isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       name = '불러오기 실패';
-  //       etc = e.toString();
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
-  void fetchProfile() {
-    print("✅ fetchProfile implemented!!");
-    name = "asdf";
-    userId = "qwerqwer";
-    etc = "213";
-    isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Image.asset('assets/stopwatch.png', width: 28, height: 28),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text('마을'),
         actions: [
           IconButton(
-            icon: Image.asset('assets/setting.png', width: 28, height: 28),
+            icon: Image.asset(
+              'assets/setting.png', // 설정 아이콘
+              width: 28,
+              height: 28,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -107,7 +72,7 @@ class _VillageHubPageState extends State<VillageHubPage> {
       ),
       body: Stack(
         children: [
-          // 배경 도로
+          // 배경 (Y자 길)
           Positioned.fill(child: CustomPaint(painter: _RoadPainter())),
 
           // 집 타일
@@ -115,8 +80,8 @@ class _VillageHubPageState extends State<VillageHubPage> {
             right: -30,
             top: 50,
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => MainScreen(
@@ -126,10 +91,20 @@ class _VillageHubPageState extends State<VillageHubPage> {
                       roomState: roomState,
                     ),
                   ),
-                ).then((_) {
-                  // 돌아왔을 때 프로필 갱신
-                  fetchProfile();
-                });
+                );
+
+                if (result != null) {
+                  setState(() {
+                    hair = result['hair'];
+                    closet = result['closet'];
+                    face = result['face'];
+
+                    // 가구 정보도 반영
+                    if (result['roomState'] != null) {
+                      roomState = result['roomState'];
+                    }
+                  });
+                }
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -150,19 +125,22 @@ class _VillageHubPageState extends State<VillageHubPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const StudyRoomPage()),
-                ).then((_) {
-                  // 돌아왔을 때 프로필 갱신
-                  fetchProfile();
-                });
+                  MaterialPageRoute(builder: (context) => StudyRoomPage()),
+                );
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset('assets/studycafe.png', width: 290, height: 290),
+                  Image.asset(
+                    'assets/studycafe.png',
+                    width: 290,
+                    height: 290,
+                  ),
                   const SizedBox(height: 8),
-                  const Text('독서실',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    '독서실',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -177,8 +155,12 @@ class _VillageHubPageState extends State<VillageHubPage> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        StorePage(hair: hair, closet: closet, face: face),
+                    builder: (_) => StorePage(
+                      userId: widget.userId, // userId 전달
+                      hair: hair,
+                      closet: closet,
+                      face: face,
+                    ),
                   ),
                 );
 
@@ -188,36 +170,73 @@ class _VillageHubPageState extends State<VillageHubPage> {
                     closet = result['closet'];
                     face = result['face'];
                     if (result['roomState'] != null) {
-                      roomState = result['roomState'];
+                      roomState = result['roomState']; // roomState 적용
                     }
                   });
                 }
-
-                // 상점에서 돌아왔을 때 프로필 갱신
-                fetchProfile();
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset('assets/shop.png', width: 230, height: 230),
+                  Image.asset(
+                    'assets/shop.png',
+                    width: 230,
+                    height: 230,
+                  ),
                   const SizedBox(height: 8),
-                  const Text('상점',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    '상점',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
           ),
 
-          // 오른쪽 하단 프로필 카드
+          // 프로필 카드
           Positioned(
             right: 16,
             bottom: 24,
-            child: isLoading
-                ? const CircularProgressIndicator()
-                : _ProfileCard(name: name, userId: userId, etc: etc),
+            child: _ProfileCard(
+              name: widget.userId,      // 사용자 ID를 이름으로 표시
+              userId: widget.userId,
+              etc: '코인/레벨 등',        // "크레딧"을 "코인"으로 변경
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _VillageTile extends StatelessWidget {
+  final String imagePath;
+  final String label;
+  final VoidCallback onTap;
+
+  const _VillageTile({
+    required this.imagePath,
+    required this.label,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Image.asset(
+            imagePath,
+            width: 64,
+            height: 64,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
     );
   }
 }
@@ -230,7 +249,7 @@ class _ProfileCard extends StatelessWidget {
     required this.name,
     required this.userId,
     required this.etc,
-    super.key,
+    super.key
   });
 
   @override
@@ -242,10 +261,7 @@ class _ProfileCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 4))
         ],
         border: Border.all(color: Colors.black12),
       ),
@@ -262,7 +278,7 @@ class _ProfileCard extends StatelessWidget {
           ]),
           const Divider(height: 16),
           Text('이름: $name'),
-          Text('ID: $userId'),
+          Text('id : $userId'),
           Text('기타: $etc'),
         ],
       ),
@@ -270,6 +286,7 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
+/// 심플한 Y자 길 페인터
 class _RoadPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -285,7 +302,6 @@ class _RoadPainter extends CustomPainter {
       ..close();
     canvas.drawPath(path, paint);
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

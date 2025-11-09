@@ -1,8 +1,6 @@
-name: app1
+name: completever # 💡 프로젝트 이름을 'completever'로 설정
 description: "A new Flutter project."
-
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
@@ -11,13 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  cupertino_icons: ^1.0.8
-  intl: ^0.20.2
+  # 💡 이전에 사용하셨던 필수 종속성들 복원
+  hive: ^2.2.3
+  http: ^1.2.2
+  hive_flutter: ^1.1.0
   flutter_localizations:
     sdk: flutter
-  hive_flutter: ^1.1.0
-  hive: ^2.2.3
+  cupertino_icons: ^1.0.8
+  intl: ^0.20.2
   uuid: ^3.0.7
   dio: ^5.4.0
 
@@ -28,11 +27,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  hive_generator: ^2.0.0
-  build_runner: ^2.4.0
-
   flutter_lints: ^5.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.13
 
 flutter:
+  uses-material-design: true
+
+  # 💡 assets/ 폴더 전체를 등록합니다.
   assets:
     - assets/

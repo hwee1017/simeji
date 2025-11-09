@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // Hive import for persistence
 import 'api/store_api.dart';
 import 'try_on_page.dart';
 
 const String kBaseCharacterAsset = 'assets/mainchar.png';
 
 /// =======================
-/// 오버레이/착의실 정책 (여기만 바꾸면 전체 반영)
+/// 오버레이/착의실 정책
 /// =======================
-
-/// 캐릭터 위에 덮씌워서 미리보기를 보여줄 카테고리
-/// true  → 캐릭터 + 아이템(오버레이)
-/// false → 아이템만 단독 표시 (인테리어/가구/프로필 등)
 const Map<String, bool> kOverlayOnCharacter = {
   '의상': true,
   '헤어': true,
@@ -24,16 +21,23 @@ const Map<String, bool> kOverlayOnCharacter = {
 const List<String> kTryOnEnabledCategories = ['의상', '헤어', '얼굴'];
 
 class StorePage extends StatefulWidget {
+  final String userId;  // userId 추가
   final String? hair;
   final String? closet;
   final String? face;
-  const StorePage({super.key, this.hair, this.closet, this.face});
+  const StorePage({
+    super.key,
+    required this.userId,
+    this.hair,
+    this.closet,
+    this.face,
+  });
   @override
   State<StorePage> createState() => _StorePageState();
 }
 
 class _StorePageState extends State<StorePage> {
-  final StoreApi api = InMemoryStoreApi();
+  final StoreApi api = InMemoryStoreApi(); // 임시 API 구현 (Hive 연동시 변경 가능)
 
   String? hair;
   String? closet;
@@ -42,7 +46,6 @@ class _StorePageState extends State<StorePage> {
   List<String> categories = [];
   String selectedCategory = '의상';
   int credits = 0;
-
 
   final Map<String, List<StoreItem>> _itemsByCat = {};
   StoreItem? trialItem; // (기존 하단 패널과 호환용)
@@ -58,13 +61,26 @@ class _StorePageState extends State<StorePage> {
 
   Future<void> _bootstrap() async {
     final cats = await api.fetchCategories();
-    final c = await api.fetchCredits();
+    // Hive에서 저장된 보유 코인과 아이템 불러오기
+    final coinBox = Hive.box('coins');
+    final invBox = Hive.box('inventory');
+    final savedCoins = coinBox.get('coin', defaultValue: 0) as int;
+    final purchasedIds = List<String>.from(invBox.get('items', defaultValue: []));
+
     for (final cat in cats) {
-      _itemsByCat[cat] = await api.fetchItemsByCategory(cat);
+      final list = await api.fetchItemsByCategory(cat);
+      // Hive에 저장된 purchased 여부를 반영
+      final updatedList = list.map((item) {
+        if (purchasedIds.contains(item.id)) {
+          return item.copyWith(purchased: true);
+        }
+        return item;
+      }).toList();
+      _itemsByCat[cat] = updatedList;
     }
     setState(() {
       categories = cats;
-      credits = c;
+      credits = savedCoins;  // "크레딧" 대신 실제 코인 값 사용
       selectedCategory = cats.isNotEmpty ? cats.first : '의상';
       loading = false;
     });
@@ -73,16 +89,32 @@ class _StorePageState extends State<StorePage> {
   Future<void> _changeCategory(String cat) async {
     if (selectedCategory == cat) return;
     final list = await api.fetchItemsByCategory(cat);
+    // 보유 상태 반영
+    final invBox = Hive.box('inventory');
+    final purchasedIds = List<String>.from(invBox.get('items', defaultValue: []));
+    final updatedList = list.map((item) {
+      if (purchasedIds.contains(item.id)) {
+        return item.copyWith(purchased: true);
+      }
+      return item;
+    }).toList();
     setState(() {
       selectedCategory = cat;
-      _itemsByCat[cat] = list;
+      _itemsByCat[cat] = updatedList;
     });
   }
 
   Future<void> _refreshThisCategory() async {
     final list = await api.fetchItemsByCategory(selectedCategory);
+    final invBox = Hive.box('inventory');
+    final purchasedIds = List<String>.from(invBox.get('items', defaultValue: []));
     setState(() {
-      _itemsByCat[selectedCategory] = list;
+      _itemsByCat[selectedCategory] = list.map((item) {
+        if (purchasedIds.contains(item.id)) {
+          return item.copyWith(purchased: true);
+        }
+        return item;
+      }).toList();
     });
   }
 
@@ -94,7 +126,8 @@ class _StorePageState extends State<StorePage> {
       barrierDismissible: true,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           contentPadding: const EdgeInsets.all(16),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),
@@ -133,7 +166,7 @@ class _StorePageState extends State<StorePage> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '가격: ${item.price} 크레딧',
+                    '가격: ${item.price} 코인', // "크레딧"을 "코인"으로 변경
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
@@ -156,7 +189,20 @@ class _StorePageState extends State<StorePage> {
                   Navigator.pop(ctx);
                   if (!mounted) return;
                   if (ok) {
-                    final newCredits = await api.fetchCredits();
+                    // Hive 업데이트: 아이템 구매 상태 저장 및 코인 차감
+                    final invBox = Hive.box('inventory');
+                    List<String> items =
+                    List<String>.from(invBox.get('items', defaultValue: []));
+                    if (!items.contains(item.id)) {
+                      items.add(item.id);
+                      invBox.put('items', items);
+                    }
+                    final coinBox = Hive.box('coins');
+                    final currentCoins =
+                    coinBox.get('coin', defaultValue: 0) as int;
+                    final newCoins = currentCoins - item.price;
+                    coinBox.put('coin', newCoins);
+                    final newCredits = newCoins;
                     await _refreshThisCategory();
                     setState(() => credits = newCredits);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +210,7 @@ class _StorePageState extends State<StorePage> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('크레딧이 부족하거나 구매 불가합니다.')),
+                      const SnackBar(content: Text('코인이 부족하거나 구매 불가합니다.')),
                     );
                   }
                 },
@@ -202,8 +248,10 @@ class _StorePageState extends State<StorePage> {
                 ),
               ],
             ),
-            child: Text('보유 크레딧: $credits',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              '보유 코인: $credits', // "크레딧"을 "코인"으로 변경
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -213,7 +261,7 @@ class _StorePageState extends State<StorePage> {
           Expanded(
             child: Row(
               children: [
-                // 좌측 카테고리(슬라이드) + 하단 '착의실'
+                // 좌측 카테고리(슬라이드) + 하단 'Try on'
                 Container(
                   width: 96,
                   color: Colors.grey.shade200,
@@ -241,8 +289,7 @@ class _StorePageState extends State<StorePage> {
                                   boxShadow: selected
                                       ? [
                                     BoxShadow(
-                                      color:
-                                      Colors.black.withOpacity(0.08),
+                                      color: Colors.black.withOpacity(0.08),
                                       blurRadius: 6,
                                       offset: const Offset(0, 2),
                                     )
@@ -253,7 +300,9 @@ class _StorePageState extends State<StorePage> {
                                   child: Text(
                                     cat,
                                     style: TextStyle(
-                                      color: selected ? Colors.white : Colors.black87,
+                                      color: selected
+                                          ? Colors.white
+                                          : Colors.black87,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -292,7 +341,7 @@ class _StorePageState extends State<StorePage> {
                                 );
                               },
                               icon: const Icon(Icons.checkroom_rounded),
-                              label: const Text('착의실'),
+                              label: const Text('Try on'), // "착의실"을 "Try on"으로 변경
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: Colors.black87,
@@ -380,7 +429,7 @@ class _StorePageState extends State<StorePage> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${item.price} 크레딧',
+                                    '${item.price} 코인', // "크레딧"을 "코인"으로 변경
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: item.price > credits
@@ -389,20 +438,22 @@ class _StorePageState extends State<StorePage> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-
-                                  // [FIX] 구매완료 표시 영역 고정 (상자 줄어드는 버그 해결)
+                                  // [구매완료 표시 영역]
                                   SizedBox(
                                     height: 24,
                                     child: item.purchased
                                         ? Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
+                                      padding:
+                                      const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4),
                                       decoration: BoxDecoration(
                                         color: Colors.green.shade50,
                                         borderRadius:
                                         BorderRadius.circular(8),
                                         border: Border.all(
-                                            color: Colors.green.shade300),
+                                            color:
+                                            Colors.green.shade300),
                                       ),
                                       child: const Text(
                                         '구매완료',
