@@ -1,4 +1,5 @@
 // lib/village_hub_page.dart
+import 'package:completever/study_room/study_room_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart'; // Hive import
 import 'store_page.dart'; // 상점 화면
@@ -122,8 +123,9 @@ class _VillageHubPageState extends State<VillageHubPage> {
             top: 90,
             child: GestureDetector(
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('독서실은 준비중입니다.')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StudyRoomPage()),
                 );
               },
               child: Column(

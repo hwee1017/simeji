@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# 한양대학교 공과대학 학술제 
+=======
 # test_field
 
 A new Flutter project.
@@ -14,3 +17,4 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+>>>>>>> 5657b9df7b9ed16f94d09dcaab265cb9d9453012

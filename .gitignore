@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+/build/
+/.dart_tool/
+/.idea/
+/android/
+.flutter-plugins-dependencies
+pubspec.lock
+simeji.iml
+=======
 # Miscellaneous
 *.class
 *.log
@@ -43,3 +52,4 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+>>>>>>> 5657b9df7b9ed16f94d09dcaab265cb9d9453012
