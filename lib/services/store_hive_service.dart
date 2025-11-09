@@ -8,7 +8,7 @@ class StoreHiveService {
   static Box? _invBox;   // key 'items' -> List<String>
 
   static Future<void> init() async {
-    try { await Hive.initFlutter(); } catch (_) {}
+    // try { await Hive.initFlutter(); } catch (_) {}
     _coinsBox = Hive.isBoxOpen(coinsBoxName)
         ? Hive.box(coinsBoxName)
         : await Hive.openBox(coinsBoxName);
