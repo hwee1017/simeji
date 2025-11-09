@@ -1,12 +1,15 @@
 // lib/village_hub_page.dart
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // Hive import
 import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
+import 'study_room/study_room_page.dart';
+// ★추가: 세션에서 userId 읽기용
+import 'package:hive_flutter/hive_flutter.dart';
 
 class VillageHubPage extends StatefulWidget {
-  final String userId; // userId 추가
+  // ★변경: 필수 → 선택. 인자로 안 넘겨도 세션에서 읽는다. 없으면 '1'
+  final String? userId;
   final String? hair;
   final String? closet;
   final String? face;
@@ -14,7 +17,7 @@ class VillageHubPage extends StatefulWidget {
 
   const VillageHubPage({
     super.key,
-    required this.userId,
+    this.userId,
     this.hair,
     this.closet,
     this.face,
@@ -31,10 +34,17 @@ class _VillageHubPageState extends State<VillageHubPage> {
   String? face;
 
   late RoomState roomState; // 현재 가구/배경/바닥 상태
+  late String effectiveUserId; // ★추가: 실제 사용할 유저 ID
 
   @override
   void initState() {
     super.initState();
+
+    // ★추가: 세션 -> 인자 순으로 읽고, 진짜 없으면 '1'
+    final session = Hive.box('session');
+    effectiveUserId =
+        widget.userId ?? (session.get('currentUserId') as String? ?? '1');
+
     hair = widget.hair ?? 'assets/hair1.png';
     closet = widget.closet ?? 'assets/closet1.png';
     face = widget.face ?? 'assets/face1.png';
@@ -122,8 +132,9 @@ class _VillageHubPageState extends State<VillageHubPage> {
             top: 90,
             child: GestureDetector(
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('독서실은 준비중입니다.')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const StudyRoomPage()),
                 );
               },
               child: Column(
@@ -154,7 +165,7 @@ class _VillageHubPageState extends State<VillageHubPage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => StorePage(
-                      userId: widget.userId, // userId 전달
+                      userId: effectiveUserId, // ★변경: widget.userId → effectiveUserId
                       hair: hair,
                       closet: closet,
                       face: face,
@@ -196,8 +207,8 @@ class _VillageHubPageState extends State<VillageHubPage> {
             right: 16,
             bottom: 24,
             child: _ProfileCard(
-              name: widget.userId,      // 사용자 ID를 이름으로 표시
-              userId: widget.userId,
+              name: effectiveUserId, // ★변경
+              userId: effectiveUserId, // ★변경
               etc: '코인/레벨 등',        // "크레딧"을 "코인"으로 변경
             ),
           ),
