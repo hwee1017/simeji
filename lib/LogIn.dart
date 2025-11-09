@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'vilage_hub_page.dart';
+import 'services/store_hive_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +25,9 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     final id = _idController.text.trim();
     final pw = _pwController.text.trim();
+    //await StoreHiveService.seedDefaultsIfEmpty(); //작동 코드(이전 기록 hive에 남은 상태) -> TEST 끝나고 교체
+    await StoreHiveService.resetToFactory(); // 코인=1000, 보유아이템=[cloth1, face1, face2, hair1]로 강제 초기화
+
 
     setState(() => _errorMessage = null);
     if (id.isEmpty || pw.isEmpty) {

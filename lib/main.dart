@@ -10,11 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'LogIn.dart'; // 로그인 첫 화면이 여기라고 했잖아
 
+import 'services/store_hive_service.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  await Hive.openBox('coins');
-  await Hive.openBox('inventory');
+  await StoreHiveService.init();
   runApp(const MyApp());
 }
 
