@@ -1,10 +1,8 @@
-// lib/api/store_api.dart
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:hive_flutter/hive_flutter.dart';
+import '../services/store_hive_service.dart';
 
-/// 모델: StoreItem
 @immutable
 class StoreItem {
   final String id;
@@ -46,10 +44,6 @@ class StoreItem {
   }
 }
 
-/// 과거 별칭 호환
-typedef Item = StoreItem;
-
-/// API 인터페이스
 abstract class StoreApi {
   Future<int> fetchCredits();
   Future<List<String>> fetchCategories();
@@ -57,9 +51,9 @@ abstract class StoreApi {
   Future<bool> purchase(String itemId);
 }
 
-/// 메모리 구현 (기존 그대로)
+/// 최소 수정: 코인/구매 처리는 여기서 **한 번만**
 class InMemoryStoreApi implements StoreApi {
-  int _credits = 0;
+  int _credits = StoreHiveService.getCoins(); // CHANGED: Hive 값으로 초기화
 
   final Map<String, List<StoreItem>> _itemsByCategory = {
     '의상': [
@@ -98,6 +92,7 @@ class InMemoryStoreApi implements StoreApi {
         imagePath: 'assets/hair2.png',
       ),
     ],
+    // 얼굴 카테고리는 유지(데이터 보존) — UI에서만 숨긴다.
     '얼굴': [
       StoreItem(
         id: 'face1',
@@ -115,14 +110,6 @@ class InMemoryStoreApi implements StoreApi {
         price: 150,
         imagePath: 'assets/face2.png',
       ),
-      StoreItem(id: 'keke', category: '얼굴', name: '케케', description: '케케케케케', price: 150, imagePath: 'assets/keke.png'),
-      StoreItem(id: 'love', category: '얼굴', name: '하트 눈', description: '세계는 사랑에 빠져있는거야. 너를 생각하면 나는 떨려와.', price: 150, imagePath: 'assets/love.png'),
-      StoreItem(id: 'sad', category: '얼굴', name: '울고 있는 얼굴', description: '내 골반이 멈추지 않는 탓일까 ㅜ.ㅜ', price: 150, imagePath: 'assets/sad.png'),
-      StoreItem(id: 'angry', category: '얼굴', name: '화난 얼굴', description: '나 화났다.', price: 150, imagePath: 'assets/angry.png'),
-      StoreItem(id: 'annoying', category: '얼굴', name: '짜증난 얼굴', description: '아 짜증나!!', price: 150, imagePath: 'assets/annoying.png'),
-      StoreItem(id: 'happy', category: '얼굴', name: '행복한 얼굴', description: '세상만사 다 기쁘게 받아들일 준비 되셨나요?', price: 150, imagePath: 'assets/happy.png'),
-      StoreItem(id: 'yum', category: '얼굴', name: '욤', description: '욤 owo', price: 150, imagePath: 'assets/yum.png'),
-      StoreItem(id: 'surprise', category: '얼굴', name: '놀란 얼굴', description: '아 깜놀했네!', price: 150, imagePath: 'assets/surprise.png'),
     ],
     '가구': [
       StoreItem(id: 'desk1', category: '가구', name: '책상', description: '편한 책상', price: 300, purchased: true, imagePath: 'assets/desk1.png'),
@@ -139,13 +126,30 @@ class InMemoryStoreApi implements StoreApi {
       StoreItem(id: 'floor2', category: '테마', name: '핑크 줄무늬 바닥', description: '핑크 , 줄무늬', price: 650, imagePath: 'assets/floor2.png'),
     ],
     '프로필': [
-      StoreItem(id: 'profile1', category: '프로필', name: '여자', description: 'ENFP 여자', price: 200, imagePath: 'assets/profile1.png'),
-      StoreItem(id: 'profile2', category: '프로필', name: '남자', description: 'ISTJ 남자', price: 200, imagePath: 'assets/profile2.png'),
+      StoreItem(
+        id: 'profile1',
+        category: '프로필',
+        name: '여자',
+        description: 'ENFP 여자',
+        price: 200,
+        imagePath: 'assets/profile1.png',
+      ),
+      StoreItem(
+        id: 'profile2',
+        category: '프로필',
+        name: '남자',
+        description: 'ISTJ 남자',
+        price: 200,
+        imagePath: 'assets/profile2.png',
+      ),
     ],
   };
 
   @override
-  Future<int> fetchCredits() async => _credits;
+  Future<int> fetchCredits() async {
+    _credits = StoreHiveService.getCoins(); // CHANGED: 항상 Hive와 동기화
+    return _credits;
+  }
 
   @override
   Future<List<String>> fetchCategories() async =>
@@ -157,58 +161,63 @@ class InMemoryStoreApi implements StoreApi {
 
   @override
   Future<bool> purchase(String itemId) async {
+    // 여기서만 차감/구매 처리 → 중복 차감 방지
     for (final list in _itemsByCategory.values) {
       final idx = list.indexWhere((e) => e.id == itemId);
       if (idx != -1) {
         final it = list[idx];
-        if (it.purchased) return true;         // 이미 구매됨
-        if (_credits < it.price) return false; // 코인 부족
-        _credits -= it.price;
-        list[idx] = it.copyWith(purchased: true);
+        if (it.purchased) return true;
+
+        final currentCoins = StoreHiveService.getCoins();
+        if (currentCoins < it.price) return false;
+
+        final newCoins = currentCoins - it.price;        // 차감
+        await StoreHiveService.setCoins(newCoins);        // Hive 반영
+        _credits = newCoins;                              // 내부 캐시 반영
+        list[idx] = it.copyWith(purchased: true);        // 아이템 구매 처리
+        await StoreHiveService.addPurchased(it.id);       // 인벤토리 반영
         return true;
       }
     }
-    return false; // 아이템 없음
+    return false;
   }
 }
 
-/// 서버 연동 예시 (userId 기반) — 그대로 유지
+/// (필요시) 서버 API용 클래스는 기존 그대로 유지 가능
 class HttpStoreApi implements StoreApi {
   final String userId;
   HttpStoreApi(this.userId);
-
   final String baseUrl = 'https://api.example.com';
 
   @override
   Future<int> fetchCredits() async {
     final url = Uri.parse('$baseUrl/$userId/credits');
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
       return data['credits'] as int;
     }
-    return 0;
+    return StoreHiveService.getCoins();
   }
 
   @override
   Future<List<String>> fetchCategories() async {
     final url = Uri.parse('$baseUrl/$userId/categories');
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as List;
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body) as List;
       return data.map((e) => e.toString()).toList();
     }
-    return InMemoryStoreApi().fetchCategories();
+    return [];
   }
 
   @override
   Future<List<StoreItem>> fetchItemsByCategory(String category) async {
-    final url = Uri.parse('$baseUrl/$userId/inventory');
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as List;
-      return data
-          .map((e) => StoreItem(
+    final url = Uri.parse('$baseUrl/$userId/inventory?category=$category');
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body) as List;
+      return data.map((e) => StoreItem(
         id: e['id'],
         category: e['category'],
         name: e['name'],
@@ -216,8 +225,7 @@ class HttpStoreApi implements StoreApi {
         price: e['price'],
         purchased: e['purchased'],
         imagePath: e['imagePath'],
-      ))
-          .toList();
+      )).toList();
     }
     return [];
   }
@@ -225,51 +233,15 @@ class HttpStoreApi implements StoreApi {
   @override
   Future<bool> purchase(String itemId) async {
     final url = Uri.parse('$baseUrl/$userId/purchase');
-    final purchaseTime = DateTime.now().toIso8601String();
-    final response = await http.post(
+    final resp = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'user_id': userId,
         'item_id': itemId,
-        // 'price': price, // 필요 시 포함
-        'time': purchaseTime,
+        'time': DateTime.now().toIso8601String(),
       }),
     );
-    return response.statusCode == 200;
+    return resp.statusCode == 200;
   }
-}
-
-/// ====== 여기부터가 딱! 수정 포인트 ======
-/// 인벤토리 업로드는 GET에 body가 아니라, 표준대로 JSON 바디를 가진 POST/PUT을 사용.
-Future<void> uploadInventory(String userId) async {
-  final invBox = Hive.box('inventory');
-  final items = List<String>.from(invBox.get('items', defaultValue: []));
-  final url = Uri.parse('https://api.example.com/$userId/inventory');
-
-  await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'items': items}),
-  );
-}
-
-/// 구매 정보 업로드 (기존 그대로 POST)
-Future<void> uploadPurchase(
-    String userId,
-    String itemId,
-    int price,
-    DateTime time,
-    ) async {
-  final url = Uri.parse('https://api.example.com/$userId/purchase');
-  await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'user_id': userId,
-      'item_id': itemId,
-      'price': price,
-      'time': time.toIso8601String(),
-    }),
-  );
 }

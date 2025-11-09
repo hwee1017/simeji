@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/hive_service.dart';
+import 'services/store_hive_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ Future<void> main() async {
   
   await Hive.openBox('coins');
   await Hive.openBox('inventory');
+  await StoreHiveService.init();
   runApp(const MyApp());
 }
 
