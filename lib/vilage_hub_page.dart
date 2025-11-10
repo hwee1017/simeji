@@ -1,10 +1,12 @@
 // lib/village_hub_page.dart
 import 'package:completever/study_room/study_room_page.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // Hive import
+import 'dart:async';
 import 'store_page.dart'; // 상점 화면
 import 'Setting.dart';
 import 'main.dart';
+import 'study_room/study_room_page.dart';
+import 'services/user_hive_service.dart';
 
 class VillageHubPage extends StatefulWidget {
   final String userId; // userId 추가
@@ -31,6 +33,10 @@ class _VillageHubPageState extends State<VillageHubPage> {
   String? closet;
   String? face;
 
+  String? userName;
+  String? userId;
+  // int coin;
+
   late RoomState roomState; // 현재 가구/배경/바닥 상태
 
   @override
@@ -47,10 +53,21 @@ class _VillageHubPageState extends State<VillageHubPage> {
           wall: 'assets/wall1.png',
           desk: 'assets/desk1.png',
         );
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    setState(() {
+      userName = UserHiveService.getUserName();
+      userId = UserHiveService.getUserId();
+      // coin = UserHiveService().getCoin();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('마을'),
@@ -198,8 +215,8 @@ class _VillageHubPageState extends State<VillageHubPage> {
             right: 16,
             bottom: 24,
             child: _ProfileCard(
-              name: widget.userId,      // 사용자 ID를 이름으로 표시
-              userId: widget.userId,
+              name: userName!,      // 사용자 ID를 이름으로 표시
+              userId: userId!,
               etc: '코인/레벨 등',        // "크레딧"을 "코인"으로 변경
             ),
           ),

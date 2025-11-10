@@ -5,22 +5,26 @@ import 'LogIn.dart';
 import 'Chat.dart';
 import 'RoomFurniturePage.dart';// 💡 lib/Chat.dart 파일에서 ChatScreen을 불러오기 위해 추가
 import 'package:hive_flutter/hive_flutter.dart';
+
+import 'services/store_hive_service.dart';
+
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/hive_service.dart';
-import 'services/store_hive_service.dart';
+
+import 'services/user_hive_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ko_KR', null);
 
-  // Hive 초기화(학습 쪽)
-  await HiveService.init();
-  
-  await Hive.openBox('coins');
-  await Hive.openBox('inventory');
+  await Hive.initFlutter();
+
   await StoreHiveService.init();
+  await HiveService.init();
+  await UserHiveService.init();
+  
   runApp(const MyApp());
 }
 
@@ -49,7 +53,6 @@ class RoomState {
     this.desk = 'assets/desk1.png',
   });
 }
-
 
 class MyApp extends StatelessWidget {
   final String? hair;

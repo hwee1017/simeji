@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'LogIn.dart'; // 🔥 LogIn 페이지 import 추가
+import 'LogIn.dart';
+import 'services/user_hive_service.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 
@@ -29,28 +30,61 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   int baseTime = 5;
   int extraTime = 4;
+  String? userName;
+  String? userId;
 
   bool isEditingBaseTime = false;
   bool isEditingExtraTime = false;
+  bool isEditingUserName = false;
 
   final _baseTimeController = TextEditingController();
   final _extraTimeController = TextEditingController();
+  final _userNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Hive에서 값 불러오기
+    baseTime = UserHiveService.getBaseTime();
+    extraTime = UserHiveService.getExtraTime();
+    userName = UserHiveService.getUserName();
+    userId = UserHiveService.getUserId();
+  }
 
   @override
   void dispose() {
     _baseTimeController.dispose();
     _extraTimeController.dispose();
+    _userNameController.dispose();
     super.dispose();
   }
 
-  void _saveSettings() {
-    // 실제 저장 로직 추가 가능
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('설정이 저장되었습니다.')),
-    );
+  Future<void> _saveSettings() async {
+    await UserHiveService.saveSettings(baseTime: baseTime, extraTime: extraTime);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('설정이 저장되었습니다.')),
+      );
+    }
   }
 
-  void _toggleBaseTimeEdit() {
+  Future<void> _saveUserName() async {
+    if (_userNameController.text.trim().isEmpty) return;
+    await UserHiveService.saveUserInfo(
+      userName: _userNameController.text.trim(),
+      userId: userId, // userId는 그대로 유지
+    );
+    setState(() {
+      userName = _userNameController.text.trim();
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이름이 변경되었습니다.')),
+      );
+    }
+  }
+
+  void _toggleBaseTimeEdit() async {
     setState(() {
       if (isEditingBaseTime) {
         final input = int.tryParse(_baseTimeController.text);
@@ -60,9 +94,13 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       isEditingBaseTime = !isEditingBaseTime;
     });
+
+    if (!isEditingBaseTime) {
+      await _saveSettings();
+    }
   }
 
-  void _toggleExtraTimeEdit() {
+  void _toggleExtraTimeEdit() async {
     setState(() {
       if (isEditingExtraTime) {
         final input = int.tryParse(_extraTimeController.text);
@@ -72,16 +110,37 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       isEditingExtraTime = !isEditingExtraTime;
     });
+
+    if (!isEditingExtraTime) {
+      await _saveSettings();
+    }
   }
 
-  // 🔥 로그아웃 확인 다이얼로그 함수
+  void _toggleUserNameEdit() async {
+    setState(() {
+      if (isEditingUserName) {
+        final input = _userNameController.text.trim();
+        if (input.isNotEmpty) {
+          userName = input;
+        }
+      } else {
+        _userNameController.text = userName ?? '';
+      }
+      isEditingUserName = !isEditingUserName;
+    });
+
+    if (!isEditingUserName) {
+      await _saveUserName();
+    }
+  }
+
   void _showLogoutDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('로그아웃'),
-          content: const Text('정말 로그아웃하시겠습니까?'),
+          content: const Text('로그아웃 하시겠습니까?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -98,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (route) => false,
+                  (route) => false,
                 );
               },
               child: const Text(
@@ -120,6 +179,43 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // 유저 이름 변경
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: isEditingUserName
+                      ? TextField(
+                          controller: _userNameController,
+                          decoration: const InputDecoration(
+                            labelText: '유저 이름',
+                            hintText: '이름 입력',
+                          ),
+                        )
+                      : Text(
+                          '이름: ${userName ?? '등록되지 않음'}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _toggleUserNameEdit,
+                  child: Text(isEditingUserName ? '저장' : '변경하기'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // 유저 ID (수정 불가)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'ID: ${userId ?? '불러올 수 없음'}',
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+            const Divider(height: 32),
+
             // 기준시간
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,17 +223,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 Expanded(
                   child: isEditingBaseTime
                       ? TextField(
-                    controller: _baseTimeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: '기준 시간 (시)',
-                      hintText: '예: 5',
-                    ),
-                  )
+                          controller: _baseTimeController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: '기준 시 (시)',
+                            hintText: '예: 5',
+                          ),
+                        )
                       : Text(
-                    '기준 시간: $baseTime시',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                          '기준 시간: $baseTime시',
+                          style: const TextStyle(fontSize: 16),
+                        ),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
@@ -155,17 +251,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 Expanded(
                   child: isEditingExtraTime
                       ? TextField(
-                    controller: _extraTimeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: '잉여 시간 (시)',
-                      hintText: '예: 4',
-                    ),
-                  )
+                          controller: _extraTimeController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: '잉여 시간 (시)',
+                            hintText: '예: 4',
+                          ),
+                        )
                       : Text(
-                    '잉여 시간: $extraTime시간',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                          '잉여 시간: $extraTime시간',
+                          style: const TextStyle(fontSize: 16),
+                        ),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
@@ -187,20 +283,9 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Text('비밀번호 변경'),
             ),
 
-            const SizedBox(height: 30),
-
-            // ✅ 저장하기 버튼 (비밀번호 변경 아래쪽)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveSettings,
-                child: const Text('저장하기'),
-              ),
-            ),
-
             const Spacer(),
 
-            // ✅ 로그아웃 버튼 (맨 아래쪽, 빨간색)
+            // 로그아웃 버튼
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -216,6 +301,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+// 기존 ChangePasswordPage 그대로 유지
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
 
@@ -230,8 +316,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   String? _errorMessage;
 
   bool validatePassword(String password) {
-    final regex =
-    RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$');
+    final regex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$');
     return regex.hasMatch(password);
   }
 
@@ -286,10 +371,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             const SizedBox(height: 16),
             if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _changePassword,

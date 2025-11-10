@@ -13,7 +13,7 @@ class HiveService {
   static late Box<CalendarEvent> calendarEventBox;
 
   static Future<void> init() async {
-    await Hive.initFlutter();
+    // await Hive.initFlutter();
 
     // await Hive.deleteBoxFromDisk('todos');
     // await Hive.deleteBoxFromDisk('weeklyTasks');
