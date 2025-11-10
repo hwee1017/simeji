@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: LoginPage(), // 너희 흐름: LogIn.dart → village_hub → store_page
+      home: MainPage(), // 너희 흐름: LogIn.dart → village_hub → store_page
     );
   }
 }
