@@ -7,9 +7,9 @@ import 'Setting.dart';
 import 'main.dart';
 import 'study_room/study_room_page.dart';
 import 'services/user_hive_service.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class VillageHubPage extends StatefulWidget {
-  final String userId; // userId 추가
   final String? hair;
   final String? closet;
   final String? face;
@@ -17,7 +17,6 @@ class VillageHubPage extends StatefulWidget {
 
   const VillageHubPage({
     super.key,
-    required this.userId,
     this.hair,
     this.closet,
     this.face,
@@ -173,7 +172,6 @@ class _VillageHubPageState extends State<VillageHubPage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => StorePage(
-                      userId: widget.userId, // userId 전달
                       hair: hair,
                       closet: closet,
                       face: face,
@@ -222,38 +220,6 @@ class _VillageHubPageState extends State<VillageHubPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _VillageTile extends StatelessWidget {
-  final String imagePath;
-  final String label;
-  final VoidCallback onTap;
-
-  const _VillageTile({
-    required this.imagePath,
-    required this.label,
-    required this.onTap,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Image.asset(
-            imagePath,
-            width: 64,
-            height: 64,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ],
     );
   }
 }

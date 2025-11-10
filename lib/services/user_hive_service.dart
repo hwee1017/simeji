@@ -4,7 +4,8 @@ class SettingsBoxKeys {
   static const baseTime = 'baseTime';
   static const extraTime = 'extraTime';
   static const userName = 'userName'; 
-  static const userId = 'userId';  
+  static const userId = 'userId';
+  static const coins = 'coins';
 }
 
 class UserHiveService {
@@ -20,6 +21,16 @@ class UserHiveService {
 
   static int getExtraTime() {
     return settingsBox.get(SettingsBoxKeys.extraTime, defaultValue: 4);
+  }
+
+  static int getCoins() {
+    return settingsBox.get(SettingsBoxKeys.coins, defaultValue: 10000);
+  }
+
+  static Future<void> saveCoins({
+    required int coins
+  }) async {
+    await settingsBox.put(SettingsBoxKeys.coins, coins);
   }
 
   static Future<void> saveSettings({

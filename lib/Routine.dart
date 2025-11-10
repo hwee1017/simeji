@@ -1,19 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart'; // ✅ Hive 추가
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('ko_KR', null);
-
-  // ✅ Hive 초기화
-  await Hive.initFlutter();
-  await Hive.openBox('coinsBox'); // coins + routines 저장용
-
-  runApp(const RoutineApp());
-}
 
 class RoutineApp extends StatelessWidget {
   const RoutineApp({super.key});

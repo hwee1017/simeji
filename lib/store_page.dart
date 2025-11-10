@@ -19,14 +19,12 @@ const Map<String, bool> kOverlayOnCharacter = {
 const List<String> kTryOnEnabledCategories = ['의상', '헤어'];
 
 class StorePage extends StatefulWidget {
-  final String userId;
   final String? hair;
   final String? closet;
   final String? face;
 
   const StorePage({
     super.key,
-    required this.userId,
     this.hair,
     this.closet,
     this.face,

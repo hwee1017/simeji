@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => VillageHubPage(userId: id)),
+        MaterialPageRoute(builder: (_) => VillageHubPage()),
       );
     } catch (e) {
       setState(() => _errorMessage = '로그인 처리 중 오류: $e');
