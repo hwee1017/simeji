@@ -3,6 +3,45 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'vilage_hub_page.dart';
 import 'services/store_hive_service.dart';
 
+/// ✅ 메인 화면
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('메인 화면')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignUpPage()),
+                );
+              },
+              child: const Text('회원가입'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text('로그인'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ✅ 로그인 페이지
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -27,7 +66,6 @@ class _LoginPageState extends State<LoginPage> {
     final pw = _pwController.text.trim();
     //await StoreHiveService.seedDefaultsIfEmpty(); //작동 코드(이전 기록 hive에 남은 상태) -> TEST 끝나고 교체
     await StoreHiveService.resetToFactory(); // 코인=1000, 보유아이템=[cloth1, face1, face2, hair1]로 강제 초기화
-
 
     setState(() => _errorMessage = null);
     if (id.isEmpty || pw.isEmpty) {
@@ -87,6 +125,98 @@ class _LoginPageState extends State<LoginPage> {
                 child: _busy
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Text('로그인'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ✅ 회원가입 페이지
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final _idController = TextEditingController();
+  final _pwController = TextEditingController();
+  String? _errorMessage;
+
+  bool validatePassword(String password) {
+    final regex =
+    RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$');
+    return regex.hasMatch(password);
+  }
+
+  void _signUp() {
+    final id = _idController.text.trim();
+    final pw = _pwController.text.trim();
+
+    setState(() {
+      if (id.isEmpty || pw.isEmpty) {
+        _errorMessage = '아이디 또는 비밀번호를 입력해주세요.';
+      } else if (!validatePassword(pw)) {
+        _errorMessage = '비밀번호는 8~20자이며 영문, 숫자, 특수문자를 포함해야 합니다.';
+      } else {
+        _errorMessage = null;
+      }
+    });
+
+    if (_errorMessage != null) return;
+
+    // 회원가입 성공 시
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('회원가입이 완료되었습니다!')),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => WelcomePage(userId: id)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _pwController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('회원가입')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _idController,
+              decoration: const InputDecoration(labelText: '아이디'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _pwController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: '비밀번호'),
+            ),
+            const SizedBox(height: 16),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _signUp,
+                child: const Text('회원가입'),
               ),
             ),
           ],

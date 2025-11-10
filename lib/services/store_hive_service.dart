@@ -22,7 +22,7 @@ class StoreHiveService {
     final coins = _coinsBox ?? Hive.box(coinsBoxName);
     final inv   = _invBox ?? Hive.box(inventoryBoxName);
 
-    final currentCoin = (coins.get('coin') as int?) ?? 1000;
+    final currentCoin = (coins.get('coin') as int?) ?? 10000;
     await coins.put('coin', currentCoin);
 
     final defaults = <String>['cloth1','face1','face2','hair1'];
