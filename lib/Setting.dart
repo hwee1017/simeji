@@ -226,12 +226,12 @@ class _SettingsPageState extends State<SettingsPage> {
                           controller: _baseTimeController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: '기준 시간 (시)',
+                            labelText: '기준 시 (시)',
                             hintText: '예: 5',
                           ),
                         )
                       : Text(
-                          '기준 시간: $baseTime시간',
+                          '기준 시간: $baseTime시',
                           style: const TextStyle(fontSize: 16),
                         ),
                 ),
